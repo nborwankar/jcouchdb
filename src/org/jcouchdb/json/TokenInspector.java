@@ -3,7 +3,8 @@ package org.jcouchdb.json;
 import org.jcouchdb.json.parse.JSONTokenizer;
 
 /**
- * Decides what type to convert a JSON to.
+ * Inspects the current position of a tokenizer and decides what type to use for that object.
+ *
  * @author shelmberger
  */
 public interface TokenInspector

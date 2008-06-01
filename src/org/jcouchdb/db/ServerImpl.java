@@ -14,6 +14,12 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.Logger;
 import org.jcouchdb.util.ExceptionWrapper;
 
+/**
+ * Default implementation of the {@link Server} interface.
+ *
+ * @author shelmberger
+ *
+ */
 public class ServerImpl implements Server
 {
     protected static Logger log = Logger.getLogger(ServerImpl.class);

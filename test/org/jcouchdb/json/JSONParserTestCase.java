@@ -8,9 +8,12 @@ import static org.hamcrest.Matchers.nullValue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -146,6 +149,36 @@ public class JSONParserTestCase
 
     }
 
+    @Test
+    public void thatInterfaceMappingWorks()
+    {
+        JSONParser parser = new JSONParser();
+
+        Collection c = parser.parse(Collection.class, "[1,7]");
+        Iterator i = c.iterator();
+        assertThat((Long)i.next(),is(1l));
+        assertThat((Long)i.next(),is(7l));
+        assertThat(c,is(ArrayList.class));
+
+        List l = parser.parse(List.class, "[3,2]");
+        assertThat((Long)l.get(0),is(3l));
+        assertThat((Long)l.get(1),is(2l));
+        assertThat(c,is(ArrayList.class));
+
+        Map m = parser.parse(Map.class, "{\"foo\":\"foo!\"}");
+        assertThat((String)m.get("foo"),is("foo!"));
+        assertThat(m,is(HashMap.class));
+
+        Map<Class,Class> interfaceMappings = new HashMap<Class, Class>();
+        interfaceMappings.put(Map.class,TreeMap.class);
+        parser.setInterfaceMappings(interfaceMappings);
+
+        m = parser.parse(Map.class, "{\"foo\":\"foo!\"}");
+        assertThat((String)m.get("foo"),is("foo!"));
+        assertThat(m,is(TreeMap.class));
+
+    }
+
     @Test(expected = JSONParseException.class)
     public void testGarbage1()
     {
@@ -187,4 +220,6 @@ public class JSONParserTestCase
     {
         parser.parse(ArrayList.class, "[,1]");
     }
+
+
 }

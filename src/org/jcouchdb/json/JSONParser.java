@@ -40,14 +40,64 @@ public class JSONParser
 
     private TokenInspector tokenInspector;
 
+    private Map<Class,Class> interfaceMappings = new HashMap<Class, Class>();
+
+    {
+        interfaceMappings.put(Collection.class, ArrayList.class);
+        interfaceMappings.put(List.class, HashMap.class);
+        interfaceMappings.put(Map.class, HashMap.class);
+    }
+
+    /**
+     * Sets a {@link TokenInspector} to use on the token streams parsed
+     * by this parser.
+     * @param tokenInspector
+     */
     public void setTokenInspector(TokenInspector tokenInspector)
     {
         this.tokenInspector = tokenInspector;
     }
 
+    /**
+     * Sets the type hint map that maps a parse path info to a type to use
+     * for this parse path location.
+     *
+     * ( e.g. <code>".value[]"</code> mapped to <code>FooBean.class</code> would
+     * make the parser create FooBean instances for all array elements inside the value property of the root object )
+     *
+     * @param typeHints
+     */
     public void setTypeHints(Map<String, Class> typeHints)
     {
         this.typeHints = typeHints;
+    }
+
+    /**
+     * Makes it possible to define which implementation is to be used for an interface.
+     * Per default {@link Collection} and {@link List} are mapped to {@link ArrayList} and {@link Map} is mapped to {@link HashMap}.
+     * @param interfaceMappings
+     */
+    public void setInterfaceMappings(Map<Class, Class> interfaceMappings)
+    {
+        for (Map.Entry<Class, Class> e : interfaceMappings.entrySet())
+        {
+            Class iface = e.getKey();
+            Class cls = e.getValue();
+            if (!iface.isInterface())
+            {
+                throw new IllegalArgumentException("The key "+iface+" must be an interface that is mapped to a class type.");
+            }
+            if (cls.isInterface())
+            {
+                throw new IllegalArgumentException("The value "+cls+" must be a class type.");
+            }
+            if (!iface.isAssignableFrom(cls))
+            {
+                throw new IllegalArgumentException("The class "+cls+" does not implement the interface "+iface);
+            }
+        }
+
+        this.interfaceMappings = interfaceMappings;
     }
 
     /**
@@ -226,9 +276,9 @@ public class JSONParser
             {
                 value = valueToken.value();
 
-                if(cx.memberType != null)
+                if(cx.getMemberType() != null)
                 {
-                    value = convertValueTo(value, cx.memberType);
+                    value = convertValueTo(value, cx.getMemberType());
                 }
             }
             else
@@ -236,12 +286,12 @@ public class JSONParser
                 Object newTarget = null;
                 if (valueType == TokenType.BRACE_OPEN)
                 {
-                    newTarget = createNewTargetInstance(cx.memberType, cx.getParsePathInfo("[]"), tokenizer, "[]", true);
+                    newTarget = createNewTargetInstance(cx.getMemberType(), cx.getParsePathInfo("[]"), tokenizer, "[]", true);
                     parseObjectInto(cx.push(newTarget,null,"[]"), tokenizer);
                 }
                 else if (valueType == TokenType.BRACKET_OPEN)
                 {
-                    newTarget = createNewTargetInstance(cx.memberType, cx.getParsePathInfo("[]"), tokenizer, "[]", false);
+                    newTarget = createNewTargetInstance(cx.getMemberType(), cx.getParsePathInfo("[]"), tokenizer, "[]", false);
                     parseArrayInto(cx.push(newTarget,null,"[]"), tokenizer);
                 }
                 else
@@ -330,7 +380,7 @@ public class JSONParser
                         memberType = getTypeHintFromAnnotation(cx, name);
                     }
 
-                    newTarget = createNewTargetInstance(cx.memberType, cx.getParsePathInfo(name), tokenizer, name, true);
+                    newTarget = createNewTargetInstance(cx.getMemberType(), cx.getParsePathInfo(name), tokenizer, name, true);
                     parseObjectInto(cx.push(newTarget, memberType, "."+name), tokenizer);
                 }
                 else if (valueType == TokenType.BRACKET_OPEN)
@@ -339,7 +389,7 @@ public class JSONParser
 
                     if (isProperty)
                     {
-                        newTarget = createNewTargetInstance(cx.memberType, cx.getParsePathInfo(name), tokenizer, name, false);
+                        newTarget = createNewTargetInstance(cx.getMemberType(), cx.getParsePathInfo(name), tokenizer, name, false);
                         Class memberType = getTypeHintFromAnnotation(cx, name);
                         parseArrayInto(cx.push(newTarget,memberType, "."+name), tokenizer);
                     }
@@ -413,23 +463,18 @@ public class JSONParser
     {
         if (type != null && type.isInterface())
         {
-            if (Map.class.isAssignableFrom(type))
+            for (Map.Entry<Class, Class> e : interfaceMappings.entrySet())
             {
-                return HashMap.class;
+                if (e.getKey().isAssignableFrom(type))
+                {
+                    return e.getValue();
+                }
             }
-            else if (List.class.isAssignableFrom(type))
-            {
-                return ArrayList.class;
-            }
-            else
-            {
-                throw new JSONParseException("Cannot instantiate interface "+type);
-            }
+
+            throw new IllegalArgumentException("No Mapping found for "+type+". cannot instantiate interfaces ");
         }
         return type;
     }
-
-
 
     private Method getAddMethod(Object bean, String name)
     {
@@ -582,6 +627,11 @@ public class JSONParser
             this.target = target;
             this.parent = parent;
             this.memberType = memberType;
+        }
+
+        public Class getMemberType()
+        {
+            return memberType;
         }
 
         public ParseContext push(Object target, Class memberType, String info)

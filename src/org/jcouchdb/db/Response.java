@@ -8,6 +8,13 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.jcouchdb.json.JSONParser;
 
+/**
+ * Encapsulates a couchdb server response with error code and received
+ * body.
+ *
+ * @author shelmberger
+ *
+ */
 public class Response
 {
     protected static Logger log = Logger.getLogger(Response.class);
@@ -52,22 +59,40 @@ public class Response
         return content;
     }
 
+    /**
+     * Returns the contents of the response as List
+     * @return
+     */
     public List getContentAsList()
     {
         return getParser().parse(ArrayList.class, content);
     }
 
-
+    /**
+     * Returns the contents of the response as Map
+     * @return
+     */
     public Map getContentAsMap()
     {
         return getParser().parse(HashMap.class, content);
     }
 
+    /**
+     * Returns the contents of the response as bean of the
+     * given type.
+     *
+     * @return
+     */
     public <T> T getContentAsBean(Class<T> cls)
     {
         return getParser().parse(cls, content);
     }
 
+    /**
+     * Returns <code>true</code> if the response code is
+     * between 200 and 299
+     * @return
+     */
     public boolean isOk()
     {
         return code >= 200 && code <= 299;
