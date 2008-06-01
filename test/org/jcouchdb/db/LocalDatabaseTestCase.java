@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,6 +83,29 @@ public class LocalDatabaseTestCase
     }
 
     @Test
+    public void thatMapDocumentsWork()
+    {
+        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+
+        Map<String,String> doc = new HashMap<String, String>();
+
+        doc.put("foo", "value for the foo attribute");
+        doc.put("bar", "value for the bar attribute");
+
+        db.createDocument(doc);
+
+        final String id = doc.get("_id");
+        assertThat(id, is(notNullValue()));
+        assertThat(doc.get("_rev"), is(notNullValue()));
+
+        doc = db.getDocument(Map.class, id);
+
+        assertThat(doc.get("foo"), is("value for the foo attribute"));
+        assertThat(doc.get("bar"), is("value for the bar attribute"));
+
+    }
+
+    @Test
     public void thatCreateNamedDocWorks()
     {
         FooDocument doc = new FooDocument("qux");
@@ -127,7 +151,7 @@ public class LocalDatabaseTestCase
 
         List<ViewResultRow<Map>> rows = result.getRows();
 
-        assertThat(rows.size(), is(3));
+        assertThat(rows.size(), is(4));
 
         String json = JSON.forValue(rows);
         log.debug("rows = " + json);
@@ -194,7 +218,7 @@ public class LocalDatabaseTestCase
     }
 
     @Test
-    public void getDocument()
+    public void thatGetDocumentWorks()
     {
         Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
         FooDocument doc = db.getDocument(FooDocument.class, MY_FOO_DOC_ID);

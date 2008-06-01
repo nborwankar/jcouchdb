@@ -78,7 +78,6 @@ public class JSONParser
 
     public Object parse( String json)
     {
-        Class cls = null;
         JSONTokenizer tokenizer = new JSONTokenizer(json);
 
         Token token = tokenizer.next();
@@ -107,17 +106,8 @@ public class JSONParser
     public <T> T parse(Class<T> targetType, String json)
     {
         JSONTokenizer tokenizer = new JSONTokenizer(json);
-        return parse(targetType,json,tokenizer);
-    }
 
-    private <T> T parse(Class<T> cls, String json, JSONTokenizer tokenizer)
-    {
-        if (tokenizer == null)
-        {
-            throw new IllegalArgumentException("tokenizer cannot be null");
-        }
-
-        if (cls == null)
+        if (targetType == null)
         {
             throw new IllegalArgumentException("target type cannot be null");
         }
@@ -130,10 +120,22 @@ public class JSONParser
         T t;
         try
         {
-
-            t = cls.newInstance();
-            parseInto(new ParseContext(t,null), tokenizer);
-
+            Token token = tokenizer.next();
+            TokenType type = token.type();
+            if (type == TokenType.BRACE_OPEN)
+            {
+                t = (T) createNewTargetInstance(targetType, "", tokenizer, "", true);
+                parseObjectInto(new ParseContext(t,null), tokenizer);
+            }
+            else if (type == TokenType.BRACKET_OPEN)
+            {
+                t = (T) createNewTargetInstance(targetType, "", tokenizer, "", false);
+                parseArrayInto(new ParseContext(t,null), tokenizer);
+            }
+            else
+            {
+                throw new JSONParseException("unexpected token "+token);
+            }
             return t;
         }
         catch (InstantiationException e)
@@ -190,34 +192,6 @@ public class JSONParser
     }
 
     /**
-     * Parses the next tokens of the given tokenizer into the given ParseContext
-     *
-     * @param cx
-     * @param tokenizer
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
-     */
-    private void parseInto(ParseContext cx, JSONTokenizer tokenizer) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException
-    {
-        Token token = tokenizer.next();
-        TokenType type = token.type();
-        if (type == TokenType.BRACE_OPEN)
-        {
-            parseObjectInto(cx, tokenizer);
-        }
-        else if (type == TokenType.BRACKET_OPEN)
-        {
-            parseArrayInto(cx, tokenizer);
-        }
-        else
-        {
-            throw new JSONParseException("unexpected token "+token);
-        }
-    }
-
-    /**
      * Expects the next object of the given tokenizer to be an array and parses it into the given {@link ParseContext}
      * @param cx
      * @param tokenizer
@@ -262,43 +236,12 @@ public class JSONParser
                 Object newTarget = null;
                 if (valueType == TokenType.BRACE_OPEN)
                 {
-                    Class targetType = cx.memberType;
-
-                    if (targetType == null)
-                    {
-                        targetType = getTypeHint(cx, tokenizer, "[]");
-                    }
-
-                    targetType = replaceKnownInterfaces(targetType);
-
-                    if (targetType != null && !targetType.equals(Object.class))
-                    {
-                        newTarget = targetType.newInstance();
-                    }
-                    else
-                    {
-                        newTarget = new HashMap();
-                    }
-
+                    newTarget = createNewTargetInstance(cx.memberType, cx.getParsePathInfo("[]"), tokenizer, "[]", true);
                     parseObjectInto(cx.push(newTarget,null,"[]"), tokenizer);
                 }
                 else if (valueType == TokenType.BRACKET_OPEN)
                 {
-                    Class targetType = cx.memberType;
-
-                    if (targetType == null)
-                    {
-                        targetType = getTypeHint(cx, tokenizer, "[]");
-                    }
-
-                    if (targetType != null && !targetType.equals(Object.class))
-                    {
-                        newTarget = targetType.newInstance();
-                    }
-                    else
-                    {
-                        newTarget = new ArrayList();
-                    }
+                    newTarget = createNewTargetInstance(cx.memberType, cx.getParsePathInfo("[]"), tokenizer, "[]", false);
                     parseArrayInto(cx.push(newTarget,null,"[]"), tokenizer);
                 }
                 else
@@ -381,73 +324,23 @@ public class JSONParser
                 if (valueType == TokenType.BRACE_OPEN)
                 {
                     Class memberType = null;
+
                     if (isProperty)
                     {
-                        Class type = PropertyUtils.getPropertyType(cx.target, name);
-
-                        Class typeHint = getTypeHint(cx, tokenizer, name);
-                        if (typeHint != null && type.isAssignableFrom(typeHint))
-                        {
-                            type = typeHint;
-                        }
-
-                        type = replaceKnownInterfaces(type);
-
-                        newTarget = type.newInstance();
-
-                        memberType = getMemberType(cx, name);
-
-                        if (type == null || type.equals(Object.class))
-                        {
-                            type = HashMap.class;
-                        }
-                    }
-                    else if (containerIsMap || containerIsDynAttrs)
-                    {
-                        if (cx.memberType != null)
-                        {
-                            newTarget = cx.memberType.newInstance();
-                        }
-                        else
-                        {
-                            newTarget = new HashMap();
-                        }
+                        memberType = getTypeHintFromAnnotation(cx, name);
                     }
 
+                    newTarget = createNewTargetInstance(cx.memberType, cx.getParsePathInfo(name), tokenizer, name, true);
                     parseObjectInto(cx.push(newTarget, memberType, "."+name), tokenizer);
                 }
                 else if (valueType == TokenType.BRACKET_OPEN)
                 {
+                    //Class memberType = null;
+
                     if (isProperty)
                     {
-                        Class type = PropertyUtils.getPropertyType(cx.target, name);
-
-                        Class memberType = null;
-
-                        Class typeHint = getTypeHint(cx, tokenizer, name);
-                        if (typeHint != null && type.isAssignableFrom(typeHint))
-                        {
-                            type = typeHint;
-                        }
-
-                        if (type == null || type.equals(Object.class))
-                        {
-                            type = ArrayList.class;
-                        }
-
-                        if (!type.isInterface())
-                        {
-                            newTarget = type.newInstance();
-                        }
-                        else if (Collection.class.isAssignableFrom(type))
-                        {
-                            memberType = getMemberType(cx, name);
-                            newTarget = new ArrayList();
-                        }
-                        else
-                        {
-                            throw new JSONParseException("Cannot handle non-collection interface for property "+name+" on "+cx.target);
-                        }
+                        newTarget = createNewTargetInstance(cx.memberType, cx.getParsePathInfo(name), tokenizer, name, false);
+                        Class memberType = getTypeHintFromAnnotation(cx, name);
                         parseArrayInto(cx.push(newTarget,memberType, "."+name), tokenizer);
                     }
                     else
@@ -456,7 +349,6 @@ public class JSONParser
                         if (addMethod != null)
                         {
                             Class memberType = addMethod.getParameterTypes()[0];
-
                             List temp = new ArrayList();
                             parseArrayInto(cx.push(temp,memberType, "."+name), tokenizer);
 
@@ -570,34 +462,66 @@ public class JSONParser
         return (T)value;
     }
 
-    private Class getTypeHint(ParseContext cx, JSONTokenizer tokenizer, String name)
+
+    private Object createNewTargetInstance(Class typeHint, String parsePathInfo, JSONTokenizer tokenizer, String name, boolean object)
     {
-        String parsePathKey;
-        if (name.equals("[]"))
+        Class cls = getTypeHint( parsePathInfo,tokenizer,name);
+
+        if (cls != null)
         {
-            parsePathKey = cx.info+name;
-        }
-        else
-        {
-            parsePathKey = cx.info+"."+name;
+            typeHint = cls;
         }
 
-        Class typeHint = typeHints.get(parsePathKey);
+        if (typeHint == null || typeHint.equals(Object.class))
+        {
+            if (object)
+            {
+                typeHint = Map.class;
+            }
+            else
+            {
+                typeHint = List.class;
+            }
+        }
+
+        if (typeHint.isInterface())
+        {
+            typeHint = replaceKnownInterfaces(typeHint);
+        }
+
+        try
+        {
+            return typeHint.newInstance();
+        }
+        catch (InstantiationException e)
+        {
+            throw ExceptionWrapper.wrap(e);
+        }
+        catch (IllegalAccessException e)
+        {
+            throw ExceptionWrapper.wrap(e);
+        }
+    }
+
+    private Class getTypeHint(String parsePathInfo, JSONTokenizer tokenizer, String name)
+    {
+
+        Class typeHint = typeHints.get(parsePathInfo);
 
         if (log.isDebugEnabled())
         {
-            log.debug("info = "+parsePathKey+ " => "+typeHint);
+            log.debug("info = "+parsePathInfo+ " => "+typeHint);
         }
 
         if (tokenInspector != null)
         {
-            typeHint = tokenInspector.getTypeHint(tokenizer, parsePathKey, typeHint);
+            typeHint = tokenInspector.getTypeHint(tokenizer, parsePathInfo, typeHint);
         }
 
         return typeHint;
     }
 
-    private Class getMemberType(ParseContext cx, String name)
+    private Class getTypeHintFromAnnotation(ParseContext cx, String name)
     {
 
         try
@@ -605,29 +529,27 @@ public class JSONParser
             Object target = cx.target;
             PropertyDescriptor pd = PropertyUtils.getPropertyDescriptor(target, name);
 
-            Class memberType = null;
             if (pd != null)
             {
                 Method readMethod = pd.getReadMethod();
                 Method writeMethod = pd.getWriteMethod();
-                Class type = pd.getPropertyType();
 
-                JSONTypeHint collectionType = null;
+                JSONTypeHint typeHintAnnotation = null;
                 if (writeMethod != null)
                 {
-                    collectionType = writeMethod.getAnnotation(JSONTypeHint.class);
+                    typeHintAnnotation = writeMethod.getAnnotation(JSONTypeHint.class);
                 }
-                if (collectionType == null && readMethod != null)
+                if (typeHintAnnotation == null && readMethod != null)
                 {
-                    collectionType = readMethod.getAnnotation(JSONTypeHint.class);
+                    typeHintAnnotation = readMethod.getAnnotation(JSONTypeHint.class);
                 }
-                if (collectionType != null)
+                if (typeHintAnnotation != null)
                 {
-                    memberType = collectionType.value();
+                    return typeHintAnnotation.value();
                 }
             }
 
-            return memberType;
+            return null;
         }
         catch (IllegalAccessException e)
         {
@@ -673,6 +595,20 @@ public class JSONParser
         public ParseContext pop()
         {
             return parent;
+        }
+
+        public String getParsePathInfo(String name)
+        {
+            String parsePathInfo;
+            if (name.equals("[]"))
+            {
+                parsePathInfo = info+name;
+            }
+            else
+            {
+                parsePathInfo = info+"."+name;
+            }
+            return parsePathInfo;
         }
 
         @Override
