@@ -15,6 +15,11 @@ public class JSONTokenizer
 
     public JSONTokenizer(String json)
     {
+        if (json == null)
+        {
+            throw new IllegalArgumentException("json string cannot be null.");
+        }
+
         this.json = json.toCharArray();
     }
 
