@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     28.05.2008 09:12:15                                                        
+
+     jcouchdb    
+     couchdb driver offering typed JSON conversion
+                   
+     shelmberger                                                                
+     ====================================================================== -->
+<project name="jcouchdb" default="jar">
+
+	<property file="build.properties" />
+
+	<property name="project.sources" location="src" />
+	<property name="project.build" location="bin" />
+	<property name="project.classes" location="${project.build}/classes" />
+	<property name="project.libs" location="lib" />
+
+	<description>
+            couchdb driver offering typed JSON conversion
+    </description>
+
+    <target name="clean">
+        <delete dir="${project.build}" />
+    </target>
+	
+	<target name="init">
+		<mkdir dir="${project.classes}" />
+
+		<path id="project.classpath">
+			<fileset dir="${project.libs}">
+				<include name="*.jar" />
+			</fileset>
+		</path>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${project.sources}" destdir="${project.classes}" source="1.5" target="1.5" debug="true" optimize="true" classpathref="project.classpath" />
+		<copy todir="${project.classes}">
+			<fileset dir="${project.sources}">
+				<include name="**/*.properties" />
+				<include name="**/*.xml" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="jar" depends="compile" description="Build jar file">
+		<jar destfile="${project.build}/${ant.project.name}-${project.version}.jar">
+			<fileset dir="${project.classes}" includes="**/*" excludes="log4j.properties"/>
+		</jar>
+	</target>
+</project>
