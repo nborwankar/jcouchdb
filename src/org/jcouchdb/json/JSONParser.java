@@ -17,6 +17,7 @@ import org.jcouchdb.json.parse.JSONParseException;
 import org.jcouchdb.json.parse.JSONTokenizer;
 import org.jcouchdb.json.parse.Token;
 import org.jcouchdb.json.parse.TokenType;
+import org.jcouchdb.util.DocumentHelper;
 import org.jcouchdb.util.ExceptionWrapper;
 
 /**
@@ -348,7 +349,7 @@ public class JSONParser
                 key = expectNext(tokenizer, TokenType.STRING);
             }
 
-            String name = findPropertyAnnotation(cx.target, (String)key.value());
+            String name = DocumentHelper.getPropertyNameFromAnnotation(cx.target, (String)key.value());
             if (name.length() == 0)
             {
                 throw new JSONParseException("Invalid empty property name");
@@ -536,30 +537,7 @@ public class JSONParser
         return type;
     }
 
-    private String findPropertyAnnotation(Object target, String value)
-    {
-        for (PropertyDescriptor pd : PropertyUtils.getPropertyDescriptors(target.getClass()))
-        {
-            JSONProperty jsonProperty = null;
-            Method readMethod = pd.getReadMethod();
-            Method writeMethod = pd.getWriteMethod();
 
-            if (readMethod != null)
-            {
-                jsonProperty = readMethod.getAnnotation(JSONProperty.class);
-            }
-            if (jsonProperty == null && writeMethod != null)
-            {
-                jsonProperty = writeMethod.getAnnotation(JSONProperty.class);
-            }
-
-            if (jsonProperty != null && jsonProperty.value().equals(value))
-            {
-                return pd.getName();
-            }
-        }
-        return value;
-    }
 
     private Method getAddMethod(Object bean, String name)
     {

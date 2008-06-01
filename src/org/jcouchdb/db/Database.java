@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.jcouchdb.json.JSON;
 import org.jcouchdb.json.JSONParser;
+import org.jcouchdb.util.DocumentHelper;
 
 /**
  * Contains the main interface of working with a couchdb database
@@ -129,12 +130,12 @@ public class Database
      * @param doc   Document to create.
      * @throws IllegalArgumentException if the document already had a revision set
      */
-    public void createDocument(Document doc)
+    public void createDocument(Object doc)
     {
-        if (doc.getRevision() != null)
+        if (DocumentHelper.getRevision(doc) != null)
         {
             throw new IllegalArgumentException("Newly created docs can't have a revision ( is = " +
-                doc.getRevision() + " )");
+                DocumentHelper.getRevision(doc) + " )");
         }
 
         createOrUpdateDocument(doc);
@@ -147,10 +148,10 @@ public class Database
      *
      * @param doc   Document to create.
      */
-    public void createOrUpdateDocument(Document doc)
+    public void createOrUpdateDocument(Object doc)
     {
         Response resp;
-        String id = doc.getId();
+        String id = DocumentHelper.getId(doc);
         final String json = JSON.forValue(doc);
         if (id == null)
         {
@@ -173,9 +174,9 @@ public class Database
 
         if (id == null)
         {
-            doc.setId(info.getId());
+            DocumentHelper.setId(doc, info.getId());
         }
-        doc.setRevision(info.getRevision());
+        DocumentHelper.setRevision(doc, info.getRevision());
     }
 
     /**
@@ -184,13 +185,13 @@ public class Database
      * @param doc   Document to create.
      * @throws IllegalArgumentException if the document had no revision property
      */
-    public void updateDocument(Document doc)
+    public void updateDocument(Object doc)
     {
-        if (doc.getId() == null)
+        if (DocumentHelper.getId(doc) == null)
         {
             throw new IllegalStateException("id must be set for updates");
         }
-        if (doc.getRevision() == null)
+        if (DocumentHelper.getRevision(doc) == null)
         {
             throw new IllegalStateException("revision must be set for updates");
         }
