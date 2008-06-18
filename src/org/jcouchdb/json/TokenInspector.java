@@ -12,7 +12,9 @@ public interface TokenInspector
     /**
      * Returns the type to use for the current tokenizer position
      *
-     * @param tokenizer         tokenizer to get the tokens from. does not need to be resetted to the initial position.
+     * @param tokenizer         tokenizer to get the tokens from. needs to set to a position behind the inspected value to continue
+     *                          parsing correctly.
+     *
      * @param parsePathInfo     the current parsing path within the root object
      * @param typeHint          initial type hint or <code>null</code>
      *

@@ -3,6 +3,7 @@ package org.jcouchdb.db;
 import org.apache.log4j.Logger;
 import org.jcouchdb.json.TokenInspector;
 import org.jcouchdb.json.parse.JSONTokenizer;
+import org.jcouchdb.json.parse.Token;
 
 public class TokenLogger
     implements TokenInspector
@@ -12,8 +13,11 @@ public class TokenLogger
     {
         if (log.isDebugEnabled())
         {
-            log.debug("parsePathInfo = "+parsePathInfo+", typeHint = "+typeHint);
+            Token token = tokenizer.next();
+            log.debug("token = "+token+", parsePathInfo = "+parsePathInfo+", typeHint = "+typeHint);
+
         }
+
         return typeHint;
     }
 
