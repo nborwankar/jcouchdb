@@ -35,7 +35,7 @@
         </delete>
     </target>
 
-    <target name="init" depends="resolve">
+    <target name="init">
         <mkdir dir="${project.classes}" />
 
         <path id="compile.path">
