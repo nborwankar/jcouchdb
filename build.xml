@@ -7,46 +7,90 @@
                    
      shelmberger                                                                
      ====================================================================== -->
-<project name="jcouchdb" default="jar">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="jcouchdb" default="jar">
 
-	<property file="build.properties" />
+    <property file="build.properties" />
 
-	<property name="project.sources" location="src" />
-	<property name="project.build" location="bin" />
-	<property name="project.classes" location="${project.build}/classes" />
-	<property name="project.libs" location="lib" />
+    <property name="project.sources" location="src" />
+    <property name="project.test.sources" location="test" />
+    <property name="project.build" location="bin" />
+    <property name="project.classes" location="${project.build}" />
+    <property name="project.libs" location="lib" />
 
-	<description>
+    <property name="project.reports" location="reports" />
+
+    <description>
             couchdb driver offering typed JSON conversion
     </description>
 
     <target name="clean">
         <delete dir="${project.build}" />
     </target>
-	
-	<target name="init">
-		<mkdir dir="${project.classes}" />
 
-		<path id="project.classpath">
-			<fileset dir="${project.libs}">
-				<include name="*.jar" />
-			</fileset>
-		</path>
-	</target>
+    <target name="mrproper" depends="clean">
+        <delete>
+            <fileset dir="${project.libs}">
+                <include name="**/*.jar"/>
+            </fileset>
+        </delete>
+    </target>
 
-	<target name="compile" depends="init">
-		<javac srcdir="${project.sources}" destdir="${project.classes}" source="1.5" target="1.5" debug="true" optimize="true" classpathref="project.classpath" />
-		<copy todir="${project.classes}">
-			<fileset dir="${project.sources}">
-				<include name="**/*.properties" />
-				<include name="**/*.xml" />
-			</fileset>
-		</copy>
-	</target>
+    <target name="init" depends="resolve">
+        <mkdir dir="${project.classes}" />
 
-	<target name="jar" depends="compile" description="Build jar file">
-		<jar destfile="${project.build}/${ant.project.name}-${project.version}.jar">
-			<fileset dir="${project.classes}" includes="**/*" excludes="log4j.properties"/>
-		</jar>
-	</target>
+        <path id="compile.path">
+            <fileset dir="${project.libs}/compile">
+                <include name="*.jar" />
+            </fileset>
+        </path>
+
+        <path id="test.path">
+            <fileset dir="${project.libs}/test">
+                <include name="*.jar" />
+            </fileset>
+            <path refid="compile.path" />
+            <path location="${project.classes}" />
+        </path>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac srcdir="${project.sources}" destdir="${project.classes}" source="1.5" target="1.5" debug="true" optimize="true" classpathref="compile.path" />
+
+        <copy todir="${project.classes}">
+            <fileset dir="${project.sources}">
+                <include name="**/*.properties" />
+                <include name="**/*.xml" />
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="jar" depends="test" description="Build jar file">
+        <jar destfile="${project.build}/${ant.project.name}-${project.version}.jar">
+            <fileset dir="${project.classes}" includes="**/*" excludes="log4j.properties" />
+        </jar>
+    </target>
+
+    <target name="resolve" description="--> retrieve dependencies with ivy">
+        <ivy:resolve file="${basedir}/ivy.xml" />
+        <ivy:retrieve pattern="${project.libs}/[conf]/[artifact].[ext]" />
+    </target>
+
+    <target name="test" depends="clean,compile" description="run unit tests">
+
+        <mkdir dir="${project.reports}" />
+
+        <javac srcdir="${project.test.sources}" destdir="${project.classes}" source="1.5" target="1.5" debug="true" optimize="true" classpathref="test.path" />
+
+        <junit printsummary="yes" haltonfailure="yes">
+            <classpath refid="test.path" />
+
+            <formatter type="plain" />
+
+            <batchtest fork="yes" todir="${project.reports}">
+                <fileset dir="${project.test.sources}">
+                    <include name="**/*TestCase.java" />
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
 </project>

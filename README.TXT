@@ -8,6 +8,7 @@ contents:
 LICENSE.TXT             copy of the BSD license
 build.properties        settings for the build process
 build.xml               ant build file
+ivy.xml			ivy dependency definition
 lib                     contains the dependencies
 src                     contains the source code
 test                    contains unit tests, 1 integration test that will 
