@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.jcouchdb.json.JSON;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -35,8 +36,8 @@ public class LocalDatabaseTestCase
 
     protected static Logger log = Logger.getLogger(LocalDatabaseTestCase.class);
 
-    @BeforeClass
-    public static void recreateTestDatabase()
+    @Test
+    public void recreateTestDatabase()
     {
         try
         {
@@ -218,6 +219,7 @@ public class LocalDatabaseTestCase
     }
 
     @Test
+    //@Ignore
     public void thatGetDocumentWorks()
     {
         Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
@@ -231,6 +233,7 @@ public class LocalDatabaseTestCase
     }
 
     @Test
+    //@Ignore
     public void thatAdHocViewsWork()
     {
         Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);

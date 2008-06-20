@@ -1,7 +1,7 @@
 package org.jcouchdb;
+
 import org.apache.log4j.Logger;
 import org.junit.Test;
-
 
 public class TestCase
 {
@@ -16,4 +16,5 @@ public class TestCase
         log.debug(o1.getClass().equals(Class.class));
         log.debug(o2.getClass().equals(Class.class));
     }
+
 }
