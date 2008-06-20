@@ -44,7 +44,7 @@ public class JSONParser
 
     {
         interfaceMappings.put(Collection.class, ArrayList.class);
-        interfaceMappings.put(List.class, HashMap.class);
+        interfaceMappings.put(List.class, ArrayList.class);
         interfaceMappings.put(Map.class, HashMap.class);
     }
 
@@ -307,7 +307,7 @@ public class JSONParser
             }
             else
             {
-                throw new JSONParseException("Cannot add value "+value+" to "+cx.target);
+                throw new JSONParseException("Cannot add value "+value+" to "+cx.target+" ( "+cx.target.getClass()+" )");
             }
 
             first = false;
@@ -459,7 +459,7 @@ public class JSONParser
         } // end while
     }
 
-    private Class replaceKnownInterfaces(Class type)
+    private Class getReplacementForKnownInterface(Class type)
     {
         if (type != null && type.isInterface())
         {
@@ -473,7 +473,7 @@ public class JSONParser
 
             throw new IllegalArgumentException("No Mapping found for "+type+". cannot instantiate interfaces ");
         }
-        return type;
+        return null;
     }
 
     private Method getAddMethod(Object bean, String name)
@@ -510,11 +510,20 @@ public class JSONParser
 
     private Object createNewTargetInstance(Class typeHint, String parsePathInfo, JSONTokenizer tokenizer, String name, boolean object)
     {
+        if (log.isDebugEnabled())
+        {
+            log.debug("typeHint = "+typeHint+", name = "+name+", object = "+object);
+        }
+
         Class cls = getTypeHint( parsePathInfo,tokenizer,name);
 
         if (cls != null)
         {
             typeHint = cls;
+            if (log.isDebugEnabled())
+            {
+                log.debug("set typeHint to  "+typeHint);
+            }
         }
 
         if (typeHint == null || typeHint.equals(Object.class))
@@ -527,11 +536,26 @@ public class JSONParser
             {
                 typeHint = List.class;
             }
+            if (log.isDebugEnabled())
+            {
+                log.debug("replace null typeHint with "+typeHint);
+            }
         }
 
         if (typeHint.isInterface())
         {
-            typeHint = replaceKnownInterfaces(typeHint);
+            Class replacement = getReplacementForKnownInterface(typeHint);
+
+            if (replacement != null)
+            {
+
+                if (log.isDebugEnabled())
+                {
+                    typeHint = replacement;
+                    log.debug("interface replaced with "+typeHint);
+                }
+            }
+
         }
 
         try
