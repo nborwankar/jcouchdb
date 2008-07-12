@@ -7,7 +7,7 @@
                    
      shelmberger                                                                
      ====================================================================== -->
-<project xmlns:ivy="antlib:org.apache.ivy.ant" name="jcouchdb" default="jar">
+<project name="jcouchdb" default="jar">
 
     <property file="build.properties" />
 
@@ -68,11 +68,6 @@
         <jar destfile="${project.build}/${ant.project.name}-${project.version}.jar">
             <fileset dir="${project.classes}" includes="**/*" excludes="log4j.properties" />
         </jar>
-    </target>
-
-    <target name="resolve" description="--> retrieve dependencies with ivy">
-        <ivy:resolve file="${basedir}/ivy.xml" />
-        <ivy:retrieve pattern="${project.libs}/[conf]/[artifact].[ext]" />
     </target>
 
     <target name="test" depends="clean,compile" description="run unit tests">
