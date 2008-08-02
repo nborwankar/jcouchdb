@@ -56,14 +56,18 @@ public class ServerImpl implements Server
     /* (non-Javadoc)
      * @see org.couchblog.db.Server#createDatabase(java.lang.String)
      */
-    public void createDatabase(String name)
+    public boolean createDatabase(String name)
     {
         Response resp = put("/"+name+"/");
-        if (!resp.isOk())
+        if (resp.isOk())
+        {
+            return true;
+        }
+        else
         {
             if (resp.getCode() == 409)
             {
-                throw new CouchDBException("Database already exists");
+                return false;
             }
             else
             {

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jcouchdb.json.JSONTypeHint;
+import org.jcouchdb.util.Util;
 
 public class DesignDocument
     extends BaseDocument
@@ -83,4 +84,18 @@ public class DesignDocument
         }
         return id;
     }
+
+    /**
+     * Equality based on id, language and view comparison <em>without</em> revision comparison.
+     * @param that
+     * @return
+     */
+    public boolean equalsIncludingContent(DesignDocument that)
+    {
+        return Util.equals(this.getId(), that.getId()) &&
+               Util.equals(this.getLanguage(), that.getLanguage()) &&
+               Util.equals(this.getViews(), that.getViews());
+
+    }
+
 }

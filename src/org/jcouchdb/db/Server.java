@@ -21,28 +21,29 @@ public interface Server
     /**
      * Creates the database with the given name
      * @param name
+     * @return <code>true</code> if the database could be created, <code>false</code> if they already existed
      */
-    void createDatabase(String name);
+    boolean createDatabase(String name) throws CouchDBException;
 
     /**
      * Deletes the database with the given name
      * @param name
      */
-    void deleteDatabase(String name);
+    void deleteDatabase(String name) throws CouchDBException;
 
     /**
      * Send a GET request to the given URI
      * @param uri
      * @return
      */
-    Response get(String uri);
+    Response get(String uri) throws CouchDBException;
 
     /**
      * Send a PUT request to the given URI
      * @param uri
      * @return
      */
-    Response put(String uri);
+    Response put(String uri) throws CouchDBException;
 
     /**
      * Send a PUT request to the given URI with
@@ -50,7 +51,7 @@ public interface Server
      * @param uri
      * @return
      */
-    Response put(String uri, String body);
+    Response put(String uri, String body) throws CouchDBException;
 
     /**
      * Send a POST request to the given URI with
@@ -58,7 +59,7 @@ public interface Server
      * @param uri
      * @return
      */
-    Response post(String uri, String body);
+    Response post(String uri, String body) throws CouchDBException;
 
     /**
      * Send a DELETE request to the given URI
@@ -66,6 +67,6 @@ public interface Server
      * @param uri
      * @return
      */
-    Response delete(String uri);
+    Response delete(String uri) throws CouchDBException;
 
 }

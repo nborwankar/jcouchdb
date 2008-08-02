@@ -63,4 +63,10 @@ public class ViewResultRow<T>
     {
         this.value = value;
     }
+
+    @Override
+    public String toString()
+    {
+        return super.toString()+": id = "+id+", key = "+key+", value = "+value;
+    }
 }

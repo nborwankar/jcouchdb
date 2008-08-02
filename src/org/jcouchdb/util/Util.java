@@ -8,4 +8,16 @@ public class Util
         return ((a == null && b == null) || (a != null && a.equals(b)));
     }
 
+    public static int safeHashcode(Object o)
+    {
+        if (o == null)
+        {
+            return 0;
+        }
+        else
+        {
+            return o.hashCode();
+        }
+    }
+
 }

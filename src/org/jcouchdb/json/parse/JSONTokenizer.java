@@ -315,4 +315,19 @@ public class JSONTokenizer
             }
         }
     }
+
+    /**
+     * Expects the next token to be of one of the given token types
+     *
+     * @param tokenizer
+     * @param types
+     * @return
+     * @throws JSONParseException if the expectation is not fulfilled
+     */
+    public Token expectNext(TokenType... types)
+    {
+        Token t = next();
+        t.expect(types);
+        return t;
+    }
 }

@@ -38,7 +38,7 @@ public class JSONParser
 
     private Map<String, Class> typeHints = new HashMap<String, Class>();
 
-    private TokenInspector tokenInspector;
+    private TypeMapper typeMapper;
 
     private Map<Class,Class> interfaceMappings = new HashMap<Class, Class>();
 
@@ -49,13 +49,13 @@ public class JSONParser
     }
 
     /**
-     * Sets a {@link TokenInspector} to use on the token streams parsed
+     * Sets a {@link TypeMapper} to use on the token streams parsed
      * by this parser.
-     * @param tokenInspector
+     * @param typeMapper
      */
-    public void setTokenInspector(TokenInspector tokenInspector)
+    public void setTypeMapper(TypeMapper typeMapper)
     {
-        this.tokenInspector = tokenInspector;
+        this.typeMapper = typeMapper;
     }
 
     /**
@@ -206,40 +206,6 @@ public class JSONParser
         }
     }
 
-    /**
-     * Expects the next token to be of one of the given token types
-     *
-     * @param tokenizer
-     * @param type
-     * @return
-     * @throws JSONParseException if the expectation is not fulfilled
-     */
-    private Token expectNext(JSONTokenizer tokenizer, TokenType... type)
-    {
-        Token t = tokenizer.next();
-        expect(t,type);
-        return t;
-    }
-
-    /**
-     * Expects the given token to be of one of the given token types
-     *
-     * @param tokenizer
-     * @param type
-     * @return
-     * @throws JSONParseException if the expectation is not fulfilled
-     */
-    private void expect(Token t, TokenType... types)
-    {
-        for (TokenType type : types)
-        {
-            if (t.type() == type)
-            {
-                return;
-            }
-        }
-        throw new JSONParseException("Unexpected token "+t);
-    }
 
     /**
      * Expects the next object of the given tokenizer to be an array and parses it into the given {@link ParseContext}
@@ -266,7 +232,7 @@ public class JSONParser
 
             if (!first)
             {
-                expect(valueToken, TokenType.COMMA);
+                valueToken.expect(TokenType.COMMA);
                 valueToken = tokenizer.next();
                 valueType = valueToken.type();
             }
@@ -325,11 +291,11 @@ public class JSONParser
             Token key ;
             if (first)
             {
-                key = expectNext(tokenizer, TokenType.STRING, TokenType.BRACE_CLOSE);
+                key = tokenizer.expectNext(TokenType.STRING, TokenType.BRACE_CLOSE);
             }
             else
             {
-                key = expectNext(tokenizer, TokenType.COMMA, TokenType.BRACE_CLOSE);
+                key = tokenizer.expectNext( TokenType.COMMA, TokenType.BRACE_CLOSE);
 
             }
             if (key.type() == TokenType.BRACE_CLOSE)
@@ -339,7 +305,7 @@ public class JSONParser
 
             if (!first)
             {
-                key = expectNext(tokenizer, TokenType.STRING);
+                key = tokenizer.expectNext( TokenType.STRING);
             }
 
             String name = DocumentHelper.getPropertyNameFromAnnotation(cx.target, (String)key.value());
@@ -348,7 +314,7 @@ public class JSONParser
                 throw new JSONParseException("Invalid empty property name");
             }
 
-            expectNext(tokenizer, TokenType.COLON);
+            tokenizer.expectNext(TokenType.COLON);
 
             Token valueToken = tokenizer.next();
 
@@ -387,7 +353,7 @@ public class JSONParser
                 {
                     //Class memberType = null;
 
-                    if (isProperty)
+                    if (isProperty || containerIsMap)
                     {
                         newTarget = createNewTargetInstance(cx.getMemberType(), cx.getParsePathInfo(name), tokenizer, name, false);
                         Class memberType = getTypeHintFromAnnotation(cx, name);
@@ -582,9 +548,9 @@ public class JSONParser
             log.debug("info = "+parsePathInfo+ " => "+typeHint);
         }
 
-        if (tokenInspector != null)
+        if (typeMapper != null)
         {
-            typeHint = tokenInspector.getTypeHint(tokenizer, parsePathInfo, typeHint);
+            typeHint = typeMapper.getTypeHint(tokenizer, parsePathInfo, typeHint);
         }
 
         return typeHint;

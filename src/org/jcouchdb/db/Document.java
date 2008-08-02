@@ -5,12 +5,12 @@ import org.jcouchdb.json.JSONProperty;
 public interface Document
 {
 
-    @JSONProperty("_id")
+    @JSONProperty( value = "_id", ignoreIfNull = true)
     String getId();
 
     void setId(String id);
 
-    @JSONProperty("_rev")
+    @JSONProperty( value = "_rev", ignoreIfNull = true)
     String getRevision();
 
     void setRevision(String revision);

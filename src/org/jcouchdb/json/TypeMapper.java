@@ -7,7 +7,7 @@ import org.jcouchdb.json.parse.JSONTokenizer;
  *
  * @author shelmberger
  */
-public interface TokenInspector
+public interface TypeMapper
 {
     /**
      * Returns the type to use for the current tokenizer position

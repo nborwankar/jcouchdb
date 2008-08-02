@@ -1,5 +1,7 @@
 package org.jcouchdb.json.parse;
 
+import java.util.Arrays;
+
 import org.jcouchdb.util.Util;
 
 /**
@@ -85,9 +87,30 @@ public class Token
         return this.type == type;
     }
 
+    /**
+     * Expects the given token to be of one of the given token types
+     *
+     * @param tokenizer
+     * @param type
+     * @return
+     * @throws JSONParseException if the expectation is not fulfilled
+     */
+    public void expect(TokenType... types)
+    {
+        for (TokenType type : types)
+        {
+            if (this.type() == type)
+            {
+                return;
+            }
+        }
+        throw new JSONParseException("Token "+this+" is not of one of the expected types "+Arrays.asList(types));
+    }
+
     @Override
     public String toString()
     {
         return super.toString()+": "+type+" "+value;
     }
+
 }

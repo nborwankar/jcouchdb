@@ -1,5 +1,8 @@
 package org.jcouchdb.db;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -15,6 +18,8 @@ import org.jcouchdb.util.DocumentHelper;
  */
 public class Database
 {
+    static final String DOCUMENT_TYPE_PATH = ".rows[].value";
+
     protected static Logger log = Logger.getLogger(Database.class);
 
     private String name;
@@ -101,7 +106,7 @@ public class Database
      *
      * @see JSONParser#addTypeHint(String, Class)
      * @see JSONParser#setTypeHints(Map)
-     * @see JSONParser#setTokenInspector(org.jcouchdb.json.TokenInspector)
+     * @see JSONParser#setTypeMapper(org.jcouchdb.json.TokenInspector)
      * @return
      */
     public <T> T getDocument(Class<T> cls, String docId, JSONParser parser)
@@ -139,6 +144,29 @@ public class Database
         }
 
         createOrUpdateDocument(doc);
+    }
+
+    public List<DocumentInfo> bulkCreateDocuments(Collection<Document> documents)
+    {
+        Map<String,Collection<Document>> wrap = new HashMap<String, Collection<Document>>();
+        wrap.put("docs", documents);
+
+        final String json = JSON.forValue(wrap);
+        Response resp = server.post("/" + name + "/_bulk_docs", json);
+
+        JSONParser parser = new JSONParser();
+        parser.addTypeHint(".new_revs[]", DocumentInfo.class);
+        resp.setParser(parser);
+        Map m = resp.getContentAsBean(HashMap.class);
+
+        if (m.get("ok") != null)
+        {
+            return (List<DocumentInfo>) m.get("new_revs");
+        }
+        else
+        {
+            throw new DataAccessException("Error bulk creating documents", resp);
+        }
     }
 
     /**
@@ -328,7 +356,7 @@ public class Database
         {
             parser = new JSONParser();
         }
-        parser.addTypeHint(".rows[].value", cls);
+        parser.addTypeHint(DOCUMENT_TYPE_PATH, cls);
         resp.setParser(parser);
         return resp.getContentAsBean(ViewResult.class);
     }
@@ -376,7 +404,7 @@ public class Database
         {
             parser = new JSONParser();
         }
-        parser.addTypeHint(".rows[].value", cls);
+        parser.addTypeHint(DOCUMENT_TYPE_PATH, cls);
         resp.setParser(parser);
         return resp.getContentAsBean(ViewResult.class);
     }

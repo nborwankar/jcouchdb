@@ -5,14 +5,14 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.jcouchdb.json.JSON;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -243,5 +243,21 @@ public class LocalDatabaseTestCase
 
         FooDocument doc = result.getRows().get(0).getValue();
         assertThat((String)doc.getAttribute("baz2"), is("Some test value"));
+    }
+
+    @Test
+    public void thatBulkCreationWorks()
+    {
+        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+
+        Collection<Document> docs = new ArrayList<Document>();
+
+        docs.add(new FooDocument("doc-1"));
+        docs.add(new FooDocument("doc-2"));
+        docs.add(new FooDocument("doc-3"));
+        List<DocumentInfo> infos = db.bulkCreateDocuments(docs);
+
+        assertThat(infos.size(), is(3));
+
     }
 }
