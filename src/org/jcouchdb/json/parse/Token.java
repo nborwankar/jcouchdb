@@ -12,6 +12,9 @@ import org.jcouchdb.util.Util;
  */
 public class Token
 {
+    Token next;
+    Token prev;
+
     private Object value;
     private TokenType type;
     private int index;

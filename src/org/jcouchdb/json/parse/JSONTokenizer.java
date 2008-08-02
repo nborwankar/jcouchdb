@@ -2,7 +2,7 @@ package org.jcouchdb.json.parse;
 
 /**
  * JSON Tokenizer. Parses the json text into {@link Token}s, can push back one
- * token, is stateful / not reusable / thread safe.
+ * token, is stateful / not reusable / not thread safe.
  *
  * @author shelmberger
  *
@@ -12,6 +12,9 @@ public class JSONTokenizer
     private char[] json;
     private int index;
     private boolean isDecimal;
+
+    private Token headToken = new Token(TokenType.NULL, -1);
+    private Token curToken = headToken;
 
     public JSONTokenizer(String json)
     {
@@ -57,6 +60,12 @@ public class JSONTokenizer
      */
     public Token next()
     {
+        if (curToken != null && curToken.next != null)
+        {
+            curToken = curToken.next;
+            return curToken;
+        }
+
         skipWhiteSpace();
 
         if (index >= json.length)
@@ -66,44 +75,63 @@ public class JSONTokenizer
 
         isDecimal = false;
 
+        Token token ;
+
         int start = index;
         char c1 = nextChar();
         switch(c1)
         {
             case '\"':
             {
-                return parseString();
+                token = parseString();
+                break;
             }
             case '[':
-                return new Token(TokenType.BRACKET_OPEN, "[", start);
+                token = new Token(TokenType.BRACKET_OPEN, "[", start);
+                break;
             case ']':
-                return new Token(TokenType.BRACKET_CLOSE, "]", start);
+                token = new Token(TokenType.BRACKET_CLOSE, "]", start);
+                break;
             case '{':
-                return new Token(TokenType.BRACE_OPEN, "{", start);
+                token = new Token(TokenType.BRACE_OPEN, "{", start);
+                break;
             case '}':
-                return new Token(TokenType.BRACE_CLOSE, "}", start);
+                token = new Token(TokenType.BRACE_CLOSE, "}", start);
+                break;
             case ':':
-                return new Token(TokenType.COLON, ":", start);
+                token = new Token(TokenType.COLON, ":", start);
+                break;
             case ',':
-                return new Token(TokenType.COMMA, ",", start);
+                token = new Token(TokenType.COMMA, ",", start);
+                break;
             case 't':
                 ensureKeyword("rue");
-                return new Token(TokenType.TRUE, Boolean.TRUE, start);
+                token = new Token(TokenType.TRUE, Boolean.TRUE, start);
+                break;
             case 'f':
                 ensureKeyword("alse");
-                return new Token(TokenType.FALSE, Boolean.FALSE, start);
+                token = new Token(TokenType.FALSE, Boolean.FALSE, start);
+                break;
             case 'n':
                 ensureKeyword("ull");
-                return new Token(TokenType.NULL, start);
+                token = new Token(TokenType.NULL, start);
+                break;
             default:
             {
                 if ( isNumberCharacter(c1))
                 {
-                    return parseNumber(c1);
+                    token = parseNumber(c1);
+                    break;
                 }
                 throw new JSONParseException("Unexpected character '"+c1+"'");
             }
         }
+
+        curToken.next = token;
+        token.prev = curToken;
+        curToken = token;
+
+        return token;
     }
 
     /**
@@ -112,9 +140,19 @@ public class JSONTokenizer
      *
      * @param   t
      */
-    public void pushBack(Token t)
+    public void pushBack(Token oldToken)
     {
-        this.index = t.getIndex();
+        if (oldToken.prev == null)
+        {
+            throw new IllegalStateException("oldToken.prev cannot be null");
+        }
+
+        curToken = oldToken.prev;
+    }
+
+    public void reset()
+    {
+        curToken = headToken;
     }
 
     private Token parseNumber(char c1)

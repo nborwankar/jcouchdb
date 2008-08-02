@@ -159,4 +159,8 @@ public class JSONTokenizerTestCase
             assertThat(token.getIndex(), is(token2.getIndex()));
         }
     }
+
+    @Test
+    public void testParseString() {
+    }
 }
