@@ -18,9 +18,9 @@ import org.jcouchdb.json.JSONParser;
 import org.junit.Test;
 
 
-public class FieldBasedDocumentMapperTestCase
+public class FieldValueBasedDocumentMapperTestCase
 {
-    protected static Logger log = Logger.getLogger(FieldBasedDocumentMapperTestCase.class);
+    protected static Logger log = Logger.getLogger(FieldValueBasedDocumentMapperTestCase.class);
 
     @Test
     public void thatItWorks() throws IOException
@@ -36,7 +36,7 @@ public class FieldBasedDocumentMapperTestCase
         Database db = new Database(serverMock, "test");
 
         JSONParser parser = new JSONParser();
-        FieldBasedDocumentMapper mapper = new FieldBasedDocumentMapper();
+        FieldValueBasedDocumentMapper mapper = new FieldValueBasedDocumentMapper();
         mapper.addFieldValueMapping("foo", Foo.class);
         mapper.addFieldValueMapping("bar", Bar.class);
         parser.setTypeMapper(mapper);
