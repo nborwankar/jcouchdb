@@ -514,10 +514,9 @@ public class JSONParser
 
             if (replacement != null)
             {
-
+                typeHint = replacement;
                 if (log.isDebugEnabled())
                 {
-                    typeHint = replacement;
                     log.debug("interface replaced with "+typeHint);
                 }
             }
@@ -530,6 +529,7 @@ public class JSONParser
         }
         catch (InstantiationException e)
         {
+            log.error("XXX",e);
             throw ExceptionWrapper.wrap(e);
         }
         catch (IllegalAccessException e)

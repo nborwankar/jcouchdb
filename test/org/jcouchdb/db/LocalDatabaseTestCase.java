@@ -22,6 +22,8 @@ import org.junit.Test;
  */
 public class LocalDatabaseTestCase
 {
+    private JSON jsonGenerator = new JSON();
+
     private final static String COUCHDB_HOST = "localhost";
 
     private final static int COUCHDB_PORT = Server.DEFAULT_PORT;
@@ -35,6 +37,11 @@ public class LocalDatabaseTestCase
     private static final String COMPLEX_KEY_FUNCTION = "function(doc) { if (doc.type == 'foo') { emit([1,{\"value\":doc.value}],doc); }  }";
 
     protected static Logger log = Logger.getLogger(LocalDatabaseTestCase.class);
+
+    private Database createDatabaseForTest()
+    {
+        return new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+    }
 
     @Test
     public void recreateTestDatabase()
@@ -63,7 +70,7 @@ public class LocalDatabaseTestCase
     @Test
     public void createTestDocuments()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
 
         FooDocument foo = new FooDocument("bar!");
 
@@ -86,7 +93,7 @@ public class LocalDatabaseTestCase
     @Test
     public void thatMapDocumentsWork()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
 
         Map<String,String> doc = new HashMap<String, String>();
 
@@ -112,7 +119,7 @@ public class LocalDatabaseTestCase
         FooDocument doc = new FooDocument("qux");
         doc.setId(MY_FOO_DOC_ID);
 
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
         db.createDocument(doc);
         assertThat(doc.getId(), is(MY_FOO_DOC_ID));
         assertThat(doc.getRevision(), is(notNullValue()));
@@ -122,7 +129,7 @@ public class LocalDatabaseTestCase
     @Test
     public void thatUpdateDocWorks()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
 
         FooDocument doc = db.getDocument(FooDocument.class, MY_FOO_DOC_ID);
         assertThat(doc.getValue(), is("qux"));
@@ -146,7 +153,7 @@ public class LocalDatabaseTestCase
     @Test
     public void testGetAll()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
 
         ViewResult<Map> result = db.listDocuments();
 
@@ -154,19 +161,19 @@ public class LocalDatabaseTestCase
 
         assertThat(rows.size(), is(4));
 
-        String json = JSON.forValue(rows);
+        String json = jsonGenerator.forValue(rows);
         log.debug("rows = " + json);
     }
 
     @Test
     public void testCreateDesignDocument()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
 
         DesignDocument designDocument = new DesignDocument("foo");
         designDocument.addView("byValue", new View(BY_VALUE_FUNCTION));
         designDocument.addView("complex", new View(COMPLEX_KEY_FUNCTION));
-        log.debug("DESIGN DOC = " + JSON.dumpObjectFormatted(designDocument));
+        log.debug("DESIGN DOC = " + jsonGenerator.dumpObjectFormatted(designDocument));
 
         db.createDocument(designDocument);
     }
@@ -174,9 +181,9 @@ public class LocalDatabaseTestCase
     @Test
     public void getDesignDocument()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
         DesignDocument doc = db.getDesignDocument("foo");
-        log.debug(JSON.dumpObjectFormatted(doc));
+        log.debug(jsonGenerator.dumpObjectFormatted(doc));
         assertThat(doc, is(notNullValue()));
         assertThat(doc.getId(), is(DesignDocument.PREFIX + "foo"));
         assertThat(doc.getViews().get("byValue").getMap(), is(BY_VALUE_FUNCTION));
@@ -185,7 +192,7 @@ public class LocalDatabaseTestCase
     @Test
     public void queryDocuments()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
         ViewResult<FooDocument> result = db.queryView("foo/byValue", FooDocument.class);
 
         assertThat(result.getRows().size(), is(3));
@@ -208,13 +215,13 @@ public class LocalDatabaseTestCase
     @Test
     public void queryDocumentsWithComplexKey()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
         ViewResult<FooDocument> result = db.queryView("foo/complex", FooDocument.class);
 
         assertThat(result.getRows().size(), is(3));
 
         ViewResultRow<FooDocument> row = result.getRows().get(0);
-        assertThat(JSON.forValue(row.getKey()), is("[1,{\"value\":\"bar!\"}]"));
+        assertThat(jsonGenerator.forValue(row.getKey()), is("[1,{\"value\":\"bar!\"}]"));
 
     }
 
@@ -222,13 +229,13 @@ public class LocalDatabaseTestCase
     //@Ignore
     public void thatGetDocumentWorks()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
         FooDocument doc = db.getDocument(FooDocument.class, MY_FOO_DOC_ID);
         assertThat(doc.getId(), is(MY_FOO_DOC_ID));
         assertThat(doc.getRevision(), is(notNullValue()));
         assertThat(doc.getValue(), is("qux!"));
 
-        log.debug(JSON.dumpObjectFormatted(doc));
+        log.debug(jsonGenerator.dumpObjectFormatted(doc));
 
     }
 
@@ -236,19 +243,19 @@ public class LocalDatabaseTestCase
     //@Ignore
     public void thatAdHocViewsWork()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
-        ViewResult<FooDocument>  result = db.queryAdHocView(FooDocument.class, "{ \"map\" : \"function(doc) { if (doc.baz2 == \\\"Some test value\\\") emit(null,doc);  } \" }");
+        Database db = createDatabaseForTest();
+        ViewResult<FooDocument>  result = db.queryAdHocView(FooDocument.class, "{ \"map\" : \"function(doc) { if (doc.baz2 == 'Some test value') emit(null,doc);  } \" }");
 
         assertThat(result.getRows().size(), is(1));
 
         FooDocument doc = result.getRows().get(0).getValue();
         assertThat((String)doc.getAttribute("baz2"), is("Some test value"));
     }
-
+/*
     @Test
     public void thatBulkCreationWorks()
     {
-        Database db = new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Database db = createDatabaseForTest();
 
         Collection<Document> docs = new ArrayList<Document>();
 
@@ -260,4 +267,19 @@ public class LocalDatabaseTestCase
         assertThat(infos.size(), is(3));
 
     }
+
+    @Test(expected=UpdateConflictException.class)
+    public void thatUpdateConflictsWork()
+    {
+        FooDocument foo = new FooDocument("value foo");
+        FooDocument foo2 = new FooDocument("value foo2");
+        foo.setId("update_conflict");
+        foo2.setId("update_conflict");
+
+        Database db = createDatabaseForTest();
+        db.createDocument(foo);
+        db.createDocument(foo2);
+
+    }
+*/
 }

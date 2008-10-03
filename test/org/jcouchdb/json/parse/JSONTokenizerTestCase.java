@@ -33,7 +33,7 @@ public class JSONTokenizerTestCase
 
     private Token createToken(TokenType type, Object value)
     {
-        return new Token(type,value,Integer.MIN_VALUE);
+        return new Token(type,value);
     }
 
     private Token createToken(TokenType type)
@@ -44,7 +44,7 @@ public class JSONTokenizerTestCase
         }
         else
         {
-            return new Token(type, type.getDefaultContent(), Integer.MIN_VALUE);
+            return new Token(type, type.getDefaultContent());
         }
     }
 
@@ -52,7 +52,7 @@ public class JSONTokenizerTestCase
     public void thatTokenizingNumbersWorks()
     {
         assertThat(tokenize(" \n107"), is( Arrays.asList( createToken(TokenType.INTEGER, Long.valueOf(107)))));
-        assertThat(tokenize("-19 \r"), is( Arrays.asList( createToken(TokenType.INTEGER, Long.valueOf(-19)))));
+        assertThat(tokenize("  -19 \r"), is( Arrays.asList( createToken(TokenType.INTEGER, Long.valueOf(-19)))));
 
         assertThat(tokenize("3.1415"), is( Arrays.asList( createToken(TokenType.DECIMAL, Double.valueOf(3.1415)))));
         assertThat(tokenize("10e5"), is( Arrays.asList( createToken(TokenType.DECIMAL, Double.valueOf(10e5)))));
@@ -64,7 +64,9 @@ public class JSONTokenizerTestCase
     public void thatTokenizingStringsWorks()
     {
         assertThat(tokenize("\"\""), is( Arrays.asList( createToken(TokenType.STRING, ""))));
+        assertThat(tokenize("''"), is( Arrays.asList( createToken(TokenType.STRING, ""))));
         assertThat(tokenize("\"foo bar\""), is( Arrays.asList( createToken(TokenType.STRING, "foo bar"))));
+        assertThat(tokenize("'foo bar'"), is( Arrays.asList( createToken(TokenType.STRING, "foo bar"))));
         assertThat(tokenize("\"\\\"\""), is( Arrays.asList( createToken(TokenType.STRING, "\""))));
         assertThat(tokenize("\"\\\\\\\"\""), is( Arrays.asList( createToken(TokenType.STRING, "\\\""))));
         assertThat(tokenize("\"\\r\\n\\f\\b\\/\\u0020\""), is( Arrays.asList( createToken(TokenType.STRING, "\r\n\f\b/ "))));
@@ -118,6 +120,18 @@ public class JSONTokenizerTestCase
     }
 
     @Test(expected = JSONParseException.class)
+    public void thatUnbalancedDoubleQuotesDontWork()
+    {
+        tokenize("\"'");
+    }
+
+    @Test(expected = JSONParseException.class)
+    public void thatUnbalancedSingleQuotesDontWork()
+    {
+        tokenize("'\"");
+    }
+
+    @Test(expected = JSONParseException.class)
     public void thatUnknownKeywordDoesntWork()
     {
         // wrong keyword with right first char
@@ -156,11 +170,6 @@ public class JSONTokenizerTestCase
             Token token2 = tokenizer.next();
 
             assertThat(token, is(token2));
-            assertThat(token.getIndex(), is(token2.getIndex()));
         }
-    }
-
-    @Test
-    public void testParseString() {
     }
 }

@@ -14,6 +14,12 @@ public class View
         setMap(mapFn);
     }
 
+    public View(String mapFn, String reduceFn)
+    {
+        setMap(mapFn);
+        setReduce(reduceFn);
+    }
+
     public String getMap()
     {
         return map;

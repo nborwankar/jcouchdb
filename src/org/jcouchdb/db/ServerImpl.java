@@ -65,7 +65,7 @@ public class ServerImpl implements Server
         }
         else
         {
-            if (resp.getCode() == 409)
+            if (resp.getCode() == 409 || resp.getCode() == 500)
             {
                 return false;
             }

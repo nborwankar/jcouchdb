@@ -21,6 +21,8 @@ import org.jcouchdb.json.JSON;
  */
 public class Options
 {
+    private JSON JSON = new JSON();
+
     private Map<String,Object> options = new HashMap<String, Object>();
 
     public Options()

@@ -1,25 +1,20 @@
 package org.jcouchdb.json;
 
-import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static junit.framework.TestCase.*;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.jcouchdb.json.JSON;
-import org.jcouchdb.json.JSONable;
-import org.jcouchdb.json.JSONifier;
 import org.junit.Test;
+
 
 public class JSONTestCase
 {
+    private JSON JSON = new JSON();
+
     @Test
     public void testInt()
     {
@@ -52,6 +47,7 @@ public class JSONTestCase
     public void testBean()
     {
         String json=JSON.forValue(new SimpleBean(new int[]{1,2},"baz"));
+        //assertEquals("{bar:\"baz\",_class:\""+JSONTestCase.class.getName()+"$SimpleBean\",foo:[1,2]}",json);
         assertEquals("{\"bar\":\"baz\",\"foo\":[1,2]}",json);
     }
 
@@ -60,10 +56,9 @@ public class JSONTestCase
     {
         JSONable jsonableMock = createMock(JSONable.class);
 
-        final String json = "{\"foo\":42,\"bar\":[1,3,5]}";
-        expect(jsonableMock.toJSON()).andReturn(json);
+        expect(jsonableMock.toJSON()).andReturn("{foo:1}");
         replay(jsonableMock);
-        assertThat(JSON.forValue(jsonableMock), is(json));
+        assertThat(JSON.forValue(jsonableMock), is("{foo:1}"));
         verify(jsonableMock);
     }
 
@@ -85,29 +80,6 @@ public class JSONTestCase
 
         assertThat(json, is(jsonifierOutput));
         verify(jsonifierMock);
-    }
-
-    @Test
-    public void thatJSONPropertyAnnotationsAreConsidered()
-    {
-        JSONPropertyAnnotatedBean bean = new JSONPropertyAnnotatedBean();
-        bean.setFoo("foo!");
-        bean.setBar("bar!");
-
-        assertThat(JSON.forValue(bean), is("{\"baz\":\"foo!\"}"));
-
-    }
-
-    @Test
-    public void thatDynAttrsAreDumped()
-    {
-        DynAttrsBean bean = new DynAttrsBean();
-        bean.setFoo("fu!");
-        bean.setAttribute("bar", "bar!");
-
-        assertThat(JSON.forValue(bean), containsString("\"foo\":\"fu!\""));
-        assertThat(JSON.forValue(bean), containsString("\"bar\":\"bar!\""));
-
     }
 
     public static class SimpleBean
@@ -133,32 +105,5 @@ public class JSONTestCase
 
     public static class JSONifiedBean
     {
-    }
-
-    public static class JSONPropertyAnnotatedBean
-    {
-        private String foo,bar;
-
-        @JSONProperty("baz")
-        public String getFoo()
-        {
-            return foo;
-        }
-
-        public void setFoo(String foo)
-        {
-            this.foo = foo;
-        }
-
-        public String getBar()
-        {
-            return bar;
-        }
-
-        @JSONProperty(ignore=true)
-        public void setBar(String bar)
-        {
-            this.bar = bar;
-        }
     }
 }

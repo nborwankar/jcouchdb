@@ -17,11 +17,10 @@ public class Token
 
     private Object value;
     private TokenType type;
-    private int index;
 
-    public Token(TokenType type, int index)
+    public Token(TokenType type)
     {
-        this(type,null,index);
+        this(type,null);
 
     }
 
@@ -31,7 +30,7 @@ public class Token
      * @param type
      * @param value
      */
-    public Token(TokenType type, Object value,int index)
+    public Token(TokenType type, Object value)
     {
         if (type == null)
         {
@@ -42,7 +41,6 @@ public class Token
 
         this.type = type;
         this.value = value;
-        this.index = index;
     }
 
     public Object value()
@@ -53,11 +51,6 @@ public class Token
     public TokenType type()
     {
         return type;
-    }
-
-    public int getIndex()
-    {
-        return index;
     }
 
     @Override

@@ -35,19 +35,38 @@ import java.util.StringTokenizer;
  */
 public class JSON
 {
-    /** Prevent instantiation. */
-    private JSON()
+
+    /*
+    private final static Set<String> reservedWords = new HashSet<String>(Arrays.asList("abstract", "as",
+        "boolean", "break", "byte", "case", "catch", "char", "class", "continue", "const",
+        "debugger", "default", "delete", "do", "double", "else", "enum", "export", "extends",
+        "false", "final", "finally", "float", "for", "function", "goto", "if", "implements",
+        "import", "in", "instanceof", "int", "interface", "is", "long", "namespace", "native",
+        "new", "null", "package", "private", "protected", "public", "return", "short", "static",
+        "super", "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try",
+        "typeof", "use", "var", "void", "volatile", "while", "with"));
+    */
+
+    private Map<Class,JSONifier> jsonifiers=Collections.synchronizedMap(new HashMap<Class, JSONifier>());
+
+    private char quoteChar;
+
+    public JSON()
     {
+        this('"');
     }
 
-    private static Map<Class,JSONifier> jsonifiers=Collections.synchronizedMap(new HashMap<Class, JSONifier>());
+    public JSON(char quoteChar)
+    {
+        this.quoteChar = quoteChar;
+    }
 
-    public static void registerJSONifier(Class c, JSONifier jsonifier)
+    public void registerJSONifier(Class c, JSONifier jsonifier)
     {
         jsonifiers.put(c, jsonifier);
     }
 
-    public static void deregisterJSONifiers()
+    public void deregisterJSONifiers()
     {
         jsonifiers.clear();
     }
@@ -61,7 +80,7 @@ public class JSON
      *          Object
      * @return JSON representation
      */
-    public static String dumpObjectFormatted(Object o)
+    public String dumpObjectFormatted(Object o)
     {
         StringBuilder out = new StringBuilder();
         dumpObject(out, o);
@@ -137,7 +156,7 @@ public class JSON
      * @param cnt
      *          level of indentation
      */
-    private static void newLine(StringBuilder sb, int cnt)
+    private void newLine(StringBuilder sb, int cnt)
     {
         sb.append(NEWLINE);
         for (int i = 0; i < cnt; i++)
@@ -155,7 +174,7 @@ public class JSON
      * @param o
      *          objct
      */
-    public static void dumpObject(StringBuilder out, Object o)
+    public void dumpObject(StringBuilder out, Object o)
     {
         dumpObject(out, o, '\0', null);
     }
@@ -171,7 +190,7 @@ public class JSON
      * @param ignoredProps
      *          List containing the properties to be ignored.
      */
-    public static void dumpObject(StringBuilder out, Object o,
+    public void dumpObject(StringBuilder out, Object o,
             List<String> ignoredProps)
     {
         dumpObject(out, o, '\0', ignoredProps);
@@ -181,16 +200,12 @@ public class JSON
      * Dumps the given object as JSON representation followed by a separator
      * into the given StringBuilder.
      *
-     * @param out
-     *          StringBuilder
-     * @param o
-     *          object
-     * @param separator
-     *          separator character to append after the object or
-     *          <code>'\0'</code> to append no separator.
+     * @param out StringBuilder
+     * @param o object
+     * @param separator separator character to append after the object or
+     *            <code>'\0'</code> to append no separator.
      */
-    private static void dumpObject(StringBuilder out, Object o, char separator,
-            List<String> ignoredProps)
+    private void dumpObject(StringBuilder out, Object o, char separator, List<String> ignoredProps)
     {
         try
         {
@@ -208,9 +223,8 @@ public class JSON
                 {
                     out.append(o);
                 }
-                else if (Number.class.isAssignableFrom(oClass)
-                        || oClass.equals(Boolean.class)
-                        || oClass.equals(Character.class))
+                else if (Number.class.isAssignableFrom(oClass) || oClass.equals(Boolean.class) ||
+                    oClass.equals(Character.class))
                 {
                     out.append(o);
                 }
@@ -223,8 +237,7 @@ public class JSON
                     out.append("[");
                     for (Iterator i = ((Collection) o).iterator(); i.hasNext();)
                     {
-                        dumpObject(out, i.next(), i.hasNext() ? ',' : '\0',
-                                ignoredProps);
+                        dumpObject(out, i.next(), i.hasNext() ? ',' : '\0', ignoredProps);
                     }
                     out.append("]");
                 }
@@ -234,8 +247,8 @@ public class JSON
                     int len = Array.getLength(o);
                     for (int i = 0; i < len; i++)
                     {
-                        dumpObject(out, Array.get(o, i), ((i < (len - 1)) ? ','
-                                : '\0'), ignoredProps);
+                        dumpObject(out, Array.get(o, i), ((i < (len - 1)) ? ',' : '\0'),
+                            ignoredProps);
                     }
                     out.append("]");
                 }
@@ -246,14 +259,14 @@ public class JSON
                     for (Iterator i = m.keySet().iterator(); i.hasNext();)
                     {
                         Object key = i.next();
-                        dumpObject(out, key, '\0', ignoredProps);
+
+                        dumpObject(out, key.toString(), '\0', ignoredProps);
                         out.append(":");
-                        dumpObject(out, m.get(key), i.hasNext() ? ',' : '\0',
-                                ignoredProps);
+                        dumpObject(out, m.get(key), i.hasNext() ? ',' : '\0', ignoredProps);
                     }
                     out.append("}");
                 }
-                else if((jsonifier=jsonifiers.get(oClass)) != null)
+                else if ((jsonifier = jsonifiers.get(oClass)) != null)
                 {
                     out.append(jsonifier.toJSON(o));
                 }
@@ -265,6 +278,7 @@ public class JSON
                 {
                     BeanInfo info = Introspector.getBeanInfo(o.getClass());
                     out.append("{");
+                    boolean first = true;
                     PropertyDescriptor[] pds = info.getPropertyDescriptors();
                     for (int cp = 0; cp < pds.length; cp++)
                     {
@@ -278,7 +292,8 @@ public class JSON
                             boolean ignore = (ignoredProps != null && ignoredProps.contains(name));
                             if (!name.equals("class") && !ignore)
                             {
-                                JSONProperty jsonProperty = method.getAnnotation(JSONProperty.class);
+                                JSONProperty jsonProperty = method
+                                    .getAnnotation(JSONProperty.class);
                                 if (jsonProperty == null && writeMethod != null)
                                 {
                                     jsonProperty = writeMethod.getAnnotation(JSONProperty.class);
@@ -287,21 +302,25 @@ public class JSON
                                 {
                                     name = jsonProperty.value();
 
-                                    ignore = jsonProperty.ignore() || ( value == null && jsonProperty.ignoreIfNull() );
+                                    ignore = jsonProperty.ignore() ||
+                                        (value == null && jsonProperty.ignoreIfNull());
                                 }
 
                                 if (!ignore)
                                 {
+                                    if (!first)
+                                    {
+                                        out.append(',');
+                                    }
                                     quote(out, name);
                                     out.append(':');
-                                    dumpObject(out, value,
-                                            cp < (pds.length - 1) ? ',' : '\0',
-                                            ignoredProps);
+                                    dumpObject(out, value, '\0',
+                                        ignoredProps);
+                                    first = false;
                                 }
                             }
                         }
                     }
-
                     if (o instanceof DynamicAttrs)
                     {
                         DynamicAttrs dynAttrs = (DynamicAttrs)o;
@@ -340,10 +359,9 @@ public class JSON
      * Returns a JSON representation of the given object as String.
      *
      * @return JSON representation
-     * @param o
-     *          object
+     * @param o object
      */
-    public static String forValue(Object o)
+    public String forValue(Object o)
     {
         StringBuilder tmp = new StringBuilder();
         dumpObject(tmp, o);
@@ -357,7 +375,7 @@ public class JSON
      * @param o
      *          object
      */
-    public static String forValue(Object o, List<String> ignoredProps)
+    public String forValue(Object o, List<String> ignoredProps)
     {
         StringBuilder tmp = new StringBuilder();
         dumpObject(tmp, o, ignoredProps);
@@ -373,7 +391,7 @@ public class JSON
      * @param s
      *          String to quote and escape
      */
-    public static void quote(StringBuilder buf, String s)
+    public void quote(StringBuilder buf, String s)
     {
         try
         {
@@ -383,7 +401,7 @@ public class JSON
                 return;
             }
 
-            buf.append("\"");
+            buf.append(quoteChar);
             for (int i = 0; i < s.length(); i++)
             {
                 char c = s.charAt(i);
@@ -414,7 +432,7 @@ public class JSON
                         buf.append("\\t");
                         break;
                     default:
-                        if (c < 32 || c > 127)
+                        if (c < 32 || c > 126)
                         {
                             String h = Integer.toHexString(c);
                             int len = h.length();
@@ -431,7 +449,7 @@ public class JSON
                         break;
                 }
             }
-            buf.append("\"");
+            buf.append(quoteChar);
 
         }
         catch (Exception e)
@@ -441,10 +459,15 @@ public class JSON
         }
     }
 
-    public static String quote(String s)
+    public String quote(String s)
     {
         StringBuilder sb=new StringBuilder();
         quote(sb,s);
         return sb.toString();
+    }
+
+    public void setQuoteChar(char c)
+    {
+        this.quoteChar = c;
     }
 }

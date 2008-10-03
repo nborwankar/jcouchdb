@@ -18,6 +18,8 @@ import org.jcouchdb.util.DocumentHelper;
  */
 public class Database
 {
+    private JSON JSON = new JSON();
+
     static final String DOCUMENT_TYPE_PATH = ".rows[].value";
 
     protected static Logger log = Logger.getLogger(Database.class);
@@ -40,6 +42,16 @@ public class Database
     {
         this.server = server;
         this.name = name;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public Server getServer()
+    {
+        return server;
     }
 
     /**

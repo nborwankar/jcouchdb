@@ -64,12 +64,22 @@
         </copy>
     </target>
 
-    <target name="jar" depends="test" description="Build jar file">
+    <target name="jar" depends="compile" description="Build jar file">
         <jar destfile="${project.build}/${ant.project.name}-${project.version}.jar">
-            <fileset dir="${project.classes}" includes="**/*" excludes="log4j.properties" />
+            <metainf dir="${basedir}/res/META-INF" includes="**/*"/>
+            <fileset dir="${project.classes}" includes="**/*" excludes="log4j.properties,**/*.jar" />
         </jar>
     </target>
 
+    <target name="copy" depends="jar" description="copy jar file to ffcouch">
+        <delete>
+            <fileset dir="${basedir}/../ffcouch/WebContent/WEB-INF/lib/" includes="${ant.project.name}-*.jar"/>
+        </delete> 
+        <copy todir="${basedir}/../ffcouch/WebContent/WEB-INF/lib/">
+            <fileset dir="${project.build}" includes="${ant.project.name}-${project.version}.jar"/>
+        </copy>
+    </target>
+    
     <target name="test" depends="clean,compile" description="run unit tests">
 
         <mkdir dir="${project.reports}" />

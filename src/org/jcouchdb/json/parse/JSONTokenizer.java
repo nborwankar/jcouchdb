@@ -13,7 +13,7 @@ public class JSONTokenizer
     private int index;
     private boolean isDecimal;
 
-    private Token headToken = new Token(TokenType.NULL, -1);
+    private Token headToken = new Token(TokenType.NULL, null);
     private Token curToken = headToken;
 
     public JSONTokenizer(String json)
@@ -70,7 +70,7 @@ public class JSONTokenizer
 
         if (index >= json.length)
         {
-            return new Token(TokenType.END, json.length);
+            return new Token(TokenType.END);
         }
 
         isDecimal = false;
@@ -81,40 +81,41 @@ public class JSONTokenizer
         char c1 = nextChar();
         switch(c1)
         {
-            case '\"':
+            case '"':
+            case '\'':
             {
                 token = parseString();
                 break;
             }
             case '[':
-                token = new Token(TokenType.BRACKET_OPEN, "[", start);
+                token = new Token(TokenType.BRACKET_OPEN, "[");
                 break;
             case ']':
-                token = new Token(TokenType.BRACKET_CLOSE, "]", start);
+                token = new Token(TokenType.BRACKET_CLOSE, "]");
                 break;
             case '{':
-                token = new Token(TokenType.BRACE_OPEN, "{", start);
+                token = new Token(TokenType.BRACE_OPEN, "{");
                 break;
             case '}':
-                token = new Token(TokenType.BRACE_CLOSE, "}", start);
+                token = new Token(TokenType.BRACE_CLOSE, "}");
                 break;
             case ':':
-                token = new Token(TokenType.COLON, ":", start);
+                token = new Token(TokenType.COLON, ":");
                 break;
             case ',':
-                token = new Token(TokenType.COMMA, ",", start);
+                token = new Token(TokenType.COMMA, ",");
                 break;
             case 't':
                 ensureKeyword("rue");
-                token = new Token(TokenType.TRUE, Boolean.TRUE, start);
+                token = new Token(TokenType.TRUE, Boolean.TRUE);
                 break;
             case 'f':
                 ensureKeyword("alse");
-                token = new Token(TokenType.FALSE, Boolean.FALSE, start);
+                token = new Token(TokenType.FALSE, Boolean.FALSE);
                 break;
             case 'n':
                 ensureKeyword("ull");
-                token = new Token(TokenType.NULL, start);
+                token = new Token(TokenType.NULL);
                 break;
             default:
             {
@@ -177,30 +178,30 @@ public class JSONTokenizer
 
         if (isDecimal)
         {
-            return parseDecimal(number, start);
+            return parseDecimal(number);
         }
         else
         {
             try
             {
                 long l = Long.parseLong(number );
-                return new Token(TokenType.INTEGER, l, start);
+                return new Token(TokenType.INTEGER, l);
             }
             catch(NumberFormatException nfe)
             {
                 // must be a integer greater than Long.MAX_VALUE
                 // convert to decimal
-                return parseDecimal(number, start);
+                return parseDecimal(number);
             }
         }
     }
 
-    private Token parseDecimal(String number, int start)
+    private Token parseDecimal(String number)
     {
         try
         {
             double d = Double.parseDouble(number);
-            return new Token(TokenType.DECIMAL, d, start);
+            return new Token(TokenType.DECIMAL, d);
         }
         catch(NumberFormatException nfe)
         {
@@ -210,7 +211,8 @@ public class JSONTokenizer
 
     private Token parseString()
     {
-        int start = index - 1;
+        index--;
+        char quoteChar = this.nextChar();
         StringBuilder sb = new StringBuilder();
         boolean escape = false;
         boolean endOfString = false;
@@ -219,7 +221,7 @@ public class JSONTokenizer
             char c = nextChar();
 
 
-            if ((endOfString = (c == '"' && !escape)))
+            if ((endOfString = (c == quoteChar && !escape)))
             {
                 break;
             }
@@ -236,6 +238,7 @@ public class JSONTokenizer
             {
                 switch(c)
                 {
+                    case '\'':
                     case '"':
                     case '/':
                         sb.append(c);
@@ -281,7 +284,7 @@ public class JSONTokenizer
 
         if (endOfString)
         {
-            return new Token(TokenType.STRING, sb.toString(), start);
+            return new Token(TokenType.STRING, sb.toString());
         }
         else
         {
