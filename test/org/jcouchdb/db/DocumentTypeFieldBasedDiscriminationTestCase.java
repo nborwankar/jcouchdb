@@ -15,8 +15,8 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.svenson.FieldValueBasedDocumentMapper;
 import org.svenson.JSONParser;
+import org.svenson.PropertyValueBasedTypeMapper;
 
 
 public class DocumentTypeFieldBasedDiscriminationTestCase
@@ -37,7 +37,7 @@ public class DocumentTypeFieldBasedDiscriminationTestCase
         Database db = new Database(serverMock, "test");
 
         JSONParser parser = new JSONParser();
-        FieldValueBasedDocumentMapper mapper = new FieldValueBasedDocumentMapper();
+        PropertyValueBasedTypeMapper mapper = new PropertyValueBasedTypeMapper();
         mapper.setParsePathInfo(Database.DOCUMENT_TYPE_PATH);
         mapper.addFieldValueMapping("foo", Foo.class);
         mapper.addFieldValueMapping("bar", Bar.class);
