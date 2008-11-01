@@ -1,7 +1,7 @@
 package org.jcouchdb.db;
 
-import org.jcouchdb.json.AbstractDynamicAttrs;
-import org.jcouchdb.json.JSONProperty;
+import org.svenson.AbstractDynamicProperties;
+import org.svenson.JSONProperty;
 
 /**
  * Provides information about the current couchdb server status
@@ -10,7 +10,7 @@ import org.jcouchdb.json.JSONProperty;
  *
  */
 public class DatabaseStatus
-    extends AbstractDynamicAttrs
+    extends AbstractDynamicProperties
 {
     private String name;
 

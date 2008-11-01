@@ -1,6 +1,6 @@
 package org.jcouchdb.db;
 
-import org.jcouchdb.json.JSONProperty;
+import org.svenson.JSONProperty;
 
 public class DocumentInfo
 {

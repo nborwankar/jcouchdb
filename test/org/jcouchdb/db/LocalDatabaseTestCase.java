@@ -5,15 +5,13 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.jcouchdb.json.JSON;
 import org.junit.Test;
+import org.svenson.JSON;
 
 /**
  * Runs tests against a real couchdb database running on localhost
@@ -83,7 +81,7 @@ public class LocalDatabaseTestCase
         assertThat(foo.getRevision(), is(notNullValue()));
 
         foo = new FooDocument("baz!");
-        foo.setAttribute("baz2", "Some test value");
+        foo.setProperty("baz2", "Some test value");
 
         db.createDocument(foo);
 
@@ -249,7 +247,7 @@ public class LocalDatabaseTestCase
         assertThat(result.getRows().size(), is(1));
 
         FooDocument doc = result.getRows().get(0).getValue();
-        assertThat((String)doc.getAttribute("baz2"), is("Some test value"));
+        assertThat((String)doc.getProperty("baz2"), is("Some test value"));
     }
 /*
     @Test

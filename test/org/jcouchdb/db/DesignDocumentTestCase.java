@@ -1,8 +1,8 @@
 package org.jcouchdb.db;
 
 import org.apache.log4j.Logger;
-import org.jcouchdb.json.JSON;
 import org.junit.Test;
+import org.svenson.JSON;
 
 
 public class DesignDocumentTestCase

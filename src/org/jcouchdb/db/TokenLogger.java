@@ -1,9 +1,9 @@
 package org.jcouchdb.db;
 
 import org.apache.log4j.Logger;
-import org.jcouchdb.json.TypeMapper;
-import org.jcouchdb.json.parse.JSONTokenizer;
-import org.jcouchdb.json.parse.Token;
+import org.svenson.TypeMapper;
+import org.svenson.tokenize.JSONTokenizer;
+import org.svenson.tokenize.Token;
 
 public class TokenLogger
     implements TypeMapper

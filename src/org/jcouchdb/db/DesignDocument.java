@@ -3,8 +3,8 @@ package org.jcouchdb.db;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jcouchdb.json.JSONTypeHint;
 import org.jcouchdb.util.Util;
+import org.svenson.JSONTypeHint;
 
 public class DesignDocument
     extends BaseDocument

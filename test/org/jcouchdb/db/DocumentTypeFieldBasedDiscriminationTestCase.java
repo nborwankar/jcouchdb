@@ -14,13 +14,14 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.jcouchdb.json.JSONParser;
 import org.junit.Test;
+import org.svenson.FieldValueBasedDocumentMapper;
+import org.svenson.JSONParser;
 
 
-public class FieldValueBasedDocumentMapperTestCase
+public class DocumentTypeFieldBasedDiscriminationTestCase
 {
-    protected static Logger log = Logger.getLogger(FieldValueBasedDocumentMapperTestCase.class);
+    protected static Logger log = Logger.getLogger(DocumentTypeFieldBasedDiscriminationTestCase.class);
 
     @Test
     public void thatItWorks() throws IOException
@@ -37,6 +38,7 @@ public class FieldValueBasedDocumentMapperTestCase
 
         JSONParser parser = new JSONParser();
         FieldValueBasedDocumentMapper mapper = new FieldValueBasedDocumentMapper();
+        mapper.setParsePathInfo(Database.DOCUMENT_TYPE_PATH);
         mapper.addFieldValueMapping("foo", Foo.class);
         mapper.addFieldValueMapping("bar", Bar.class);
         parser.setTypeMapper(mapper);

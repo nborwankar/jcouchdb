@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.jcouchdb.json.JSON;
-import org.jcouchdb.json.JSONParser;
-import org.jcouchdb.util.DocumentHelper;
+import org.svenson.JSON;
+import org.svenson.JSONParser;
 
 /**
  * Contains the main interface of working with a couchdb database

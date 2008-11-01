@@ -1,12 +1,12 @@
-package org.jcouchdb.util;
+package org.jcouchdb.db;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.jcouchdb.db.Document;
-import org.jcouchdb.json.JSONProperty;
+import org.jcouchdb.util.ExceptionWrapper;
+import org.svenson.JSONProperty;
 
 public class DocumentHelper
 {

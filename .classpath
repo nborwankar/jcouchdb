@@ -15,6 +15,7 @@
 	<classpathentry kind="lib" path="lib/test/junit.jar"/>
 	<classpathentry kind="lib" path="lib/compile/spring-2.5.5.jar"/>
 	<classpathentry kind="lib" path="lib/compile/spring-beans-2.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/compile/svenson-1.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

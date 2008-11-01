@@ -1,6 +1,6 @@
 package org.jcouchdb.db;
 
-import org.jcouchdb.json.AbstractDynamicAttrs;
+import org.svenson.AbstractDynamicProperties;
 
 /**
  * One row of a view result.
@@ -10,7 +10,7 @@ import org.jcouchdb.json.AbstractDynamicAttrs;
  * @param <T> Type of the value wrapped by this {@link ViewResultRow}
  */
 public class ViewResultRow<T>
-    extends AbstractDynamicAttrs
+    extends AbstractDynamicProperties
 {
     private String id;
 

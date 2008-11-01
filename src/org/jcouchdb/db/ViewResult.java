@@ -3,7 +3,7 @@ package org.jcouchdb.db;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jcouchdb.json.JSONTypeHint;
+import org.svenson.JSONTypeHint;
 
 public class ViewResult<T> extends BaseDocument
 {

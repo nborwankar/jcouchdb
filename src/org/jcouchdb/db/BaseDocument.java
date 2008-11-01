@@ -1,8 +1,8 @@
 package org.jcouchdb.db;
 
-import org.jcouchdb.json.AbstractDynamicAttrs;
-import org.jcouchdb.json.JSONProperty;
 import org.jcouchdb.util.Util;
+import org.svenson.AbstractDynamicProperties;
+import org.svenson.JSONProperty;
 
 /**
  * Convenience base class for documents. Not abstract so it can be used fully dynamically.
@@ -10,7 +10,7 @@ import org.jcouchdb.util.Util;
  * @author shelmberger
  *
  */
-public class BaseDocument extends AbstractDynamicAttrs implements Document
+public class BaseDocument extends AbstractDynamicProperties implements Document
 {
 
     private String id;

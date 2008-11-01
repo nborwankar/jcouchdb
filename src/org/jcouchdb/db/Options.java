@@ -5,7 +5,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jcouchdb.json.JSON;
+import org.svenson.JSON;
 
 /**
  * Used to pass query options to view queries.
@@ -19,11 +19,11 @@ import org.jcouchdb.json.JSON;
  * @author shelmberger
  *
  */
-public class Options
+public class Options extends HashMap<String, Object>
 {
-    private JSON JSON = new JSON();
+    private static final long serialVersionUID = -4025495141211906568L;
 
-    private Map<String,Object> options = new HashMap<String, Object>();
+    private JSON optionsJSON = new JSON();
 
     public Options()
     {
@@ -31,52 +31,53 @@ public class Options
 
     public Options(String key, Object value)
     {
-        set(key, value);
+        put(key, value);
     }
 
-    public Options set(String key, Object value)
+    @Override
+    public Options put(String key, Object value)
     {
-        options.put(key, value);
+        super.put(key, value);
         return this;
     }
 
     public Options key(String key)
     {
-        return set("key",key);
+        return put("key",key);
     }
     public Options startKey(String key)
     {
-        return set("startkey",key);
+        return put("startkey",key);
     }
 
     public Options startKeyDocId(String docId)
     {
-        return set("startkey_docid", docId);
+        return put("startkey_docid", docId);
     }
 
     public Options endKey(String key)
     {
-        return set("endkey",key);
+        return put("endkey",key);
     }
 
     public Options count(int count)
     {
-        return set("count", count);
+        return put("count", count);
     }
 
     public Options update(boolean update)
     {
-        return set("update",update);
+        return put("update",update);
     }
 
     public Options descending(boolean update)
     {
-        return set("descending",update);
+        return put("descending",update);
     }
 
     public Options skip(int skip)
     {
-        return set("skip",skip);
+        return put("skip",skip);
     }
 
     public String toQuery()
@@ -87,14 +88,14 @@ public class Options
         boolean first = true;
         try
         {
-            for (Map.Entry<String, Object> e : options.entrySet())
+            for (Map.Entry<String, Object> e : entrySet())
             {
                 if (!first)
                 {
                     sb.append("&");
                 }
                 sb.append(e.getKey()).append("=");
-                String json = JSON.forValue(e.getValue());
+                String json = optionsJSON.forValue(e.getValue());
 
                 sb.append(URLEncoder.encode(json, "UTF-8"));
                 first = false;
