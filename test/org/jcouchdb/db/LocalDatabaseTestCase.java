@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -249,13 +250,34 @@ public class LocalDatabaseTestCase
         FooDocument doc = result.getRows().get(0).getValue();
         assertThat((String)doc.getProperty("baz2"), is("Some test value"));
     }
-/*
+
+    @Test
+    public void thatNonDocumentFetchingWorks()
+    {
+        Database db = createDatabaseForTest();
+        NotADocument doc = db.getDocument(NotADocument.class, MY_FOO_DOC_ID);
+        assertThat(doc.getId(), is(MY_FOO_DOC_ID));
+        assertThat(doc.getRevision(), is(notNullValue()));
+        assertThat((String)doc.getProperty("value"), is("qux!"));
+
+        log.debug(jsonGenerator.dumpObjectFormatted(doc));
+
+        doc.setProperty("value", "changed");
+
+        db.updateDocument(doc);
+
+        NotADocument doc2 = db.getDocument(NotADocument.class, MY_FOO_DOC_ID);
+        assertThat((String)doc2.getProperty("value"), is("changed"));
+
+    }
+
+
     @Test
     public void thatBulkCreationWorks()
     {
         Database db = createDatabaseForTest();
 
-        Collection<Document> docs = new ArrayList<Document>();
+        List<Document> docs = new ArrayList<Document>();
 
         docs.add(new FooDocument("doc-1"));
         docs.add(new FooDocument("doc-2"));
@@ -279,5 +301,4 @@ public class LocalDatabaseTestCase
         db.createDocument(foo2);
 
     }
-*/
 }

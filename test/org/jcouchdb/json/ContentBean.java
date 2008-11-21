@@ -3,9 +3,9 @@
  */
 package org.jcouchdb.json;
 
-import org.jcouchdb.db.BaseDocument;
+import org.jcouchdb.db.NotADocument;
 
-public class ContentBean extends BaseDocument
+public class ContentBean extends NotADocument
 {
     private String value;
 

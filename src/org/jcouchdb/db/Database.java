@@ -157,9 +157,9 @@ public class Database
         createOrUpdateDocument(doc);
     }
 
-    public List<DocumentInfo> bulkCreateDocuments(Collection<Document> documents)
+    public List<DocumentInfo> bulkCreateDocuments(List<? extends Document> documents)
     {
-        Map<String,Collection<Document>> wrap = new HashMap<String, Collection<Document>>();
+        Map<String,List<? extends Document>> wrap = new HashMap<String, List<? extends Document>>();
         wrap.put("docs", documents);
 
         final String json = JSON.forValue(wrap);
