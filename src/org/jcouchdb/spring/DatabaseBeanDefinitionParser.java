@@ -18,7 +18,7 @@ public class DatabaseBeanDefinitionParser
     public BeanDefinition parse(Element element, ParserContext parserContext)
     {
         BeanDefinitionBuilder factory = BeanDefinitionBuilder
-            .rootBeanDefinition(CouchDBUpdater.class);
+            .rootBeanDefinition(SpringCouchDBUpdater.class);
 
         List<Element> viewElements = DomUtils.getChildElementsByTagName(element, "view");
         if (viewElements != null && viewElements.size() > 0)

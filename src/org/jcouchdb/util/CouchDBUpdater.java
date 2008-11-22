@@ -1,4 +1,4 @@
-package org.jcouchdb.spring;
+package org.jcouchdb.util;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import org.jcouchdb.exception.NotFoundException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Required;
 
-public class CouchDBUpdater implements InitializingBean
+public class CouchDBUpdater
 {
     protected static Logger log = Logger.getLogger(CouchDBUpdater.class);
 
@@ -34,11 +34,6 @@ public class CouchDBUpdater implements InitializingBean
     public void setDesignDocuments(List<DesignDocument> designDocuments)
     {
         this.designDocuments = designDocuments;
-    }
-
-    public void afterPropertiesSet() throws Exception
-    {
-        updateDesignDocuments();
     }
 
     private Database createOrGetDatabase()
