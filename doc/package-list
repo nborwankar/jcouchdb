@@ -1,0 +1,7 @@
+org.jcouchdb
+org.jcouchdb.db
+org.jcouchdb.document
+org.jcouchdb.exception
+org.jcouchdb.json
+org.jcouchdb.spring
+org.jcouchdb.util
