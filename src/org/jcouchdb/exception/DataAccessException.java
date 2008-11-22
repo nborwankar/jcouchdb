@@ -1,4 +1,6 @@
-package org.jcouchdb.db;
+package org.jcouchdb.exception;
+
+import org.jcouchdb.db.Response;
 
 public class DataAccessException extends CouchDBException
 {
@@ -6,13 +8,13 @@ public class DataAccessException extends CouchDBException
 
     private static final long serialVersionUID = -3213554102218403815L;
 
-    protected DataAccessException(String message, Response response)
+    public DataAccessException(String message, Response response)
     {
         super(message +": "+ message(response));
         this.response = response;
     }
 
-    protected DataAccessException(Response response)
+    public DataAccessException(Response response)
     {
         super(response.toString());
         this.response = response;

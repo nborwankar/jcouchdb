@@ -1,7 +1,13 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
 import org.svenson.JSONProperty;
 
+/**
+ * Provides information about created or updated documents.
+ *
+ * @author shelmberger
+ *
+ */
 public class DocumentInfo
 {
     private String id, revision, error;

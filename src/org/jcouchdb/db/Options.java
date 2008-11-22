@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jcouchdb.exception.CouchDBException;
 import org.svenson.JSON;
 
 /**

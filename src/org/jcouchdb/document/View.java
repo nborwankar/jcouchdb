@@ -1,5 +1,11 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
+/**
+ * Encapsulates a view inside a {@link DesignDocument}.
+ *
+ * @author shelmberger
+ *
+ */
 public class View
 {
     private String map,reduce;

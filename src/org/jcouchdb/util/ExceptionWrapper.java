@@ -4,8 +4,14 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.httpclient.HttpException;
-import org.jcouchdb.db.CouchDBException;
+import org.jcouchdb.exception.CouchDBException;
 
+/**
+ * Used to wrap checked exceptions in {@link CouchDBException}s throughout the project.
+ * Every checked type wrapped has its own static wrapper method.
+ *
+ * @author shelmberger
+ */
 public class ExceptionWrapper
 {
     public static CouchDBException wrap(InstantiationException e)

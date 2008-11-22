@@ -11,6 +11,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.jcouchdb.document.DesignDocument;
+import org.jcouchdb.document.Document;
+import org.jcouchdb.document.DocumentInfo;
+import org.jcouchdb.document.View;
+import org.jcouchdb.document.ViewResult;
+import org.jcouchdb.document.ViewResultRow;
+import org.jcouchdb.exception.UpdateConflictException;
 import org.junit.Test;
 import org.svenson.JSON;
 

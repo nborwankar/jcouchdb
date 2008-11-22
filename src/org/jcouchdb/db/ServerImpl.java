@@ -12,6 +12,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.Logger;
+import org.jcouchdb.exception.CouchDBException;
 import org.jcouchdb.util.ExceptionWrapper;
 
 /**

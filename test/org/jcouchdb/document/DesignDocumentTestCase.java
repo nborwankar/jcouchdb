@@ -1,6 +1,8 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
 import org.apache.log4j.Logger;
+import org.jcouchdb.document.DesignDocument;
+import org.jcouchdb.document.View;
 import org.junit.Test;
 import org.svenson.JSON;
 

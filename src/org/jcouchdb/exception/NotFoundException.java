@@ -1,5 +1,13 @@
-package org.jcouchdb.db;
+package org.jcouchdb.exception;
 
+import org.jcouchdb.db.Response;
+
+/**
+ * Is thrown when a document is not found.
+ *
+ * @author shelmberger
+ *
+ */
 public class NotFoundException
     extends DataAccessException
 {

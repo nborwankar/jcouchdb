@@ -1,4 +1,4 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
@@ -8,6 +8,13 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.jcouchdb.util.ExceptionWrapper;
 import org.svenson.JSONProperty;
 
+/**
+ * Helper class that reflectively gets and sets the "_id" and "_rev" properties of documents,
+ * obeying {@link JSONProperty} annotations.
+ *
+ * @author shelmberger
+ *
+ */
 public class DocumentHelper
 {
     protected DocumentHelper()

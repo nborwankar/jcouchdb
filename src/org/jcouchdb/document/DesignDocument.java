@@ -1,4 +1,4 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,16 +59,32 @@ public class DesignDocument
         return views;
     }
 
+    /**
+     * Sets all views of the given design document.
+     *
+     * @param views
+     */
     public void setViews(Map<String, View> views)
     {
         this.views = views;
     }
 
+    /**
+     * Adds a view to this design document.
+     *
+     * @param name      name of the view
+     * @param view      view
+     */
     public void addView(String name, View view)
     {
         views.put(name, view);
     }
 
+    /**
+     * Ensures that the id has the design document prefix and returns the id
+     * @param id    id
+     * @return  id with design document prefix
+     */
     public static String extendId(String id)
     {
         if (id != null)
@@ -87,6 +103,9 @@ public class DesignDocument
 
     /**
      * Equality based on id, language and view comparison <em>without</em> revision comparison.
+     * This method basically checks if the other design document has exactly the same id, views
+     * and language.
+     *
      * @param that
      * @return
      */

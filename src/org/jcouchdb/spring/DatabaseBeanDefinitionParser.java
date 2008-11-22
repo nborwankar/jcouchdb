@@ -9,7 +9,6 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 public class DatabaseBeanDefinitionParser
     implements BeanDefinitionParser

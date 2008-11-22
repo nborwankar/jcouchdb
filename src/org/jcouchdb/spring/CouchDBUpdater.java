@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.jcouchdb.db.Database;
-import org.jcouchdb.db.DesignDocument;
-import org.jcouchdb.db.NotFoundException;
+import org.jcouchdb.document.DesignDocument;
+import org.jcouchdb.exception.NotFoundException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Required;
 

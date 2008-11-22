@@ -1,10 +1,10 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.jcouchdb.db.BaseDocument;
-import org.jcouchdb.db.DocumentHelper;
+import org.jcouchdb.document.BaseDocument;
+import org.jcouchdb.document.DocumentHelper;
 import org.junit.Test;
 
 

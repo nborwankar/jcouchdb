@@ -14,6 +14,9 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.jcouchdb.document.BaseDocument;
+import org.jcouchdb.document.ViewResult;
+import org.jcouchdb.document.ViewResultRow;
 import org.junit.Test;
 import org.svenson.JSONParser;
 import org.svenson.PropertyValueBasedTypeMapper;

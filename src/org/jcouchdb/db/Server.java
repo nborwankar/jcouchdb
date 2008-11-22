@@ -2,6 +2,8 @@ package org.jcouchdb.db;
 
 import java.util.List;
 
+import org.jcouchdb.exception.CouchDBException;
+
 /**
  * Represents a couchdb server
  *

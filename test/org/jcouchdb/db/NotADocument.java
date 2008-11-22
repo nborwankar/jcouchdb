@@ -1,5 +1,7 @@
 package org.jcouchdb.db;
 
+import org.jcouchdb.document.BaseDocument;
+import org.jcouchdb.document.Document;
 import org.jcouchdb.util.Util;
 import org.svenson.AbstractDynamicProperties;
 import org.svenson.JSONProperty;

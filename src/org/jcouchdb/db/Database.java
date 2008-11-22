@@ -1,11 +1,17 @@
 package org.jcouchdb.db;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.jcouchdb.document.DesignDocument;
+import org.jcouchdb.document.DocumentHelper;
+import org.jcouchdb.document.DocumentInfo;
+import org.jcouchdb.document.ViewResult;
+import org.jcouchdb.exception.DataAccessException;
+import org.jcouchdb.exception.NotFoundException;
+import org.jcouchdb.exception.UpdateConflictException;
 import org.svenson.JSON;
 import org.svenson.JSONParser;
 
@@ -27,27 +33,55 @@ public class Database
 
     private Server server;
 
+    /**
+     * Creates a database object for the given host, the default port and the given data base name.
+     *
+     *
+     * @param host
+     * @param name
+     */
     public Database(String host, String name)
     {
         this(new ServerImpl(host), name);
     }
 
+    /**
+     * Create a database object for the given host, port and database name.
+     * @param host
+     * @param port
+     * @param name
+     */
     public Database(String host, int port, String name)
     {
         this(new ServerImpl(host, port), name);
     }
 
+    /**
+     * Creates a database object for the given Server object and the given database name.
+     *
+     * @param server
+     * @param name
+     */
     public Database(Server server, String name)
     {
         this.server = server;
         this.name = name;
     }
 
+    /**
+     * Returns the name of this database object
+     * @return
+     */
     public String getName()
     {
         return name;
     }
 
+    /**
+     * Returns the server this database is on.
+     *
+     * @return
+     */
     public Server getServer()
     {
         return server;
@@ -144,22 +178,28 @@ public class Database
      * assigned.
      *
      * @param doc   Document to create.
-     * @throws IllegalArgumentException if the document already had a revision set
+     * @throws IllegalStateException if the document already had a revision set
+     * @throws UpdateConflictException  if there's an update conflict while updating the document
      */
     public void createDocument(Object doc)
     {
         if (DocumentHelper.getRevision(doc) != null)
         {
-            throw new IllegalArgumentException("Newly created docs can't have a revision ( is = " +
+            throw new IllegalStateException("Newly created docs can't have a revision ( is = " +
                 DocumentHelper.getRevision(doc) + " )");
         }
 
         createOrUpdateDocument(doc);
     }
 
-    public List<DocumentInfo> bulkCreateDocuments(List<? extends Document> documents)
+    /**
+     * Bulk creates the given list of documents.
+     * @param documents
+     * @return
+     */
+    public List<DocumentInfo> bulkCreateDocuments(List<?> documents)
     {
-        Map<String,List<? extends Document>> wrap = new HashMap<String, List<? extends Document>>();
+        Map<String,List<?>> wrap = new HashMap<String, List<?>>();
         wrap.put("docs", documents);
 
         final String json = JSON.forValue(wrap);
@@ -186,6 +226,7 @@ public class Database
      * assigned.
      *
      * @param doc   Document to create.
+     * @throws UpdateConflictException  if there's an update conflict while updating the document
      */
     public void createOrUpdateDocument(Object doc)
     {
@@ -222,7 +263,8 @@ public class Database
      * Updates given document and updates the document's revision property.
      *
      * @param doc   Document to create.
-     * @throws IllegalArgumentException if the document had no revision property
+     * @throws IllegalStateException if the document had no revision property
+     * @throws UpdateConflictException  if there's an update conflict while updating the document
      */
     public void updateDocument(Object doc)
     {

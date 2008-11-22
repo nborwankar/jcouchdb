@@ -1,4 +1,4 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
 import org.svenson.AbstractDynamicProperties;
 
@@ -7,7 +7,7 @@ import org.svenson.AbstractDynamicProperties;
  *
  * @author shelmberger
  *
- * @param <T> Type of the value wrapped by this {@link ViewResultRow}
+ * @param <T> Type of the value wrapped by this view result row.
  */
 public class ViewResultRow<T>
     extends AbstractDynamicProperties

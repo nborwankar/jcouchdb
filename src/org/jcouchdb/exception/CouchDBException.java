@@ -1,4 +1,4 @@
-package org.jcouchdb.db;
+package org.jcouchdb.exception;
 
 public class CouchDBException
     extends RuntimeException

@@ -1,4 +1,4 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
 import org.jcouchdb.util.Util;
 import org.svenson.AbstractDynamicProperties;

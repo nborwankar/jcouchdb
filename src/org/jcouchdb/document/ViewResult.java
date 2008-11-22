@@ -1,10 +1,17 @@
-package org.jcouchdb.db;
+package org.jcouchdb.document;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.svenson.JSONTypeHint;
 
+/**
+ * Encapsulates the result of a view query.
+ *
+ * @author shelmberger
+ *
+ * @param <T>   type of the view result rows.
+ */
 public class ViewResult<T> extends BaseDocument
 {
     private int totalRows;

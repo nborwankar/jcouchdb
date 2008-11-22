@@ -1,5 +1,7 @@
 package org.jcouchdb.db;
 
+import org.jcouchdb.document.BaseDocument;
+
 public class FooDocument extends BaseDocument
 {
     private String type="foo",value;
