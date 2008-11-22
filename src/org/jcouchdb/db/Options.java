@@ -16,7 +16,7 @@ import org.svenson.JSON;
  * </pre>
  *
  * @see Database#queryView(String, Class, Options)
- * @see Database#queryAdHocView(Class, Options)
+ * @see Database#queryAdHocView(Class, String, Options)
  * @author shelmberger
  *
  */

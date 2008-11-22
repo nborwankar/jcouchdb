@@ -148,10 +148,6 @@ public class Database
      * @param cls       runtime class info
      * @param docId     document id
      * @param parser    configured parser
-     *
-     * @see JSONParser#addTypeHint(String, Class)
-     * @see JSONParser#setTypeHints(Map)
-     * @see JSONParser#setTypeMapper(org.jcouchdb.json.TokenInspector)
      * @return
      */
     public <T> T getDocument(Class<T> cls, String docId, JSONParser parser)
