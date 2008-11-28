@@ -18,6 +18,8 @@ import org.jcouchdb.document.DocumentInfo;
 import org.jcouchdb.document.View;
 import org.jcouchdb.document.ViewResult;
 import org.jcouchdb.document.ViewResultRow;
+import org.jcouchdb.exception.DataAccessException;
+import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
 import org.junit.Test;
 import org.svenson.JSON;
@@ -332,5 +334,38 @@ public class LocalDatabaseTestCase
         db.createDocument(foo);
         db.createDocument(foo2);
 
+    }
+
+    @Test
+    public void thatDeleteWorks()
+    {
+        FooDocument foo = new FooDocument("a document");
+        Database db = createDatabaseForTest();
+        db.createDocument(foo);
+
+        assertThat(foo.getId(), is ( notNullValue()));
+
+        FooDocument foo2 = db.getDocument(FooDocument.class, foo.getId());
+
+        assertThat(foo.getValue(), is(foo2.getValue()));
+
+        db.delete(foo);
+
+        try
+        {
+            db.getDocument(FooDocument.class, foo.getId());
+            throw new IllegalStateException("document shouldn't be there anymore");
+        }
+        catch(NotFoundException nfe)
+        {
+            // yay!
+        }
+    }
+
+    @Test(expected = DataAccessException.class)
+    public void thatDeleteFailsIfWrong()
+    {
+        Database db = createDatabaseForTest();
+        db.delete("fakeid", "fakrev");
     }
 }

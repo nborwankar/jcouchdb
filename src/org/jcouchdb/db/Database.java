@@ -12,6 +12,7 @@ import org.jcouchdb.document.ViewResult;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
+import org.jcouchdb.util.Assert;
 import org.svenson.JSON;
 import org.svenson.JSONParser;
 
@@ -152,6 +153,9 @@ public class Database
      */
     public <T> T getDocument(Class<T> cls, String docId, JSONParser parser)
     {
+        Assert.notNull(cls, "class cannot be null");
+        Assert.notNull(docId, "document id cannot be null");
+
         Response resp = server.get("/" + name + "/" + docId);
         if (resp.getCode() == 404)
         {
@@ -179,6 +183,8 @@ public class Database
      */
     public void createDocument(Object doc)
     {
+        Assert.notNull(doc, "document cannot be null");
+
         if (DocumentHelper.getRevision(doc) != null)
         {
             throw new IllegalStateException("Newly created docs can't have a revision ( is = " +
@@ -195,6 +201,8 @@ public class Database
      */
     public List<DocumentInfo> bulkCreateDocuments(List<?> documents)
     {
+        Assert.notNull(documents, "documents cannot be null");
+
         Map<String,List<?>> wrap = new HashMap<String, List<?>>();
         wrap.put("docs", documents);
 
@@ -214,6 +222,35 @@ public class Database
         {
             throw new DataAccessException("Error bulk creating documents", resp);
         }
+    }
+
+    /**
+     * Deletes the document with the given id and revision.
+     *
+     * @param docId         document id to delete
+     * @param revision      revision to delete
+     */
+    public void delete( String docId, String revision)
+    {
+        Assert.notNull(docId, "document id cannot be null");
+        Assert.notNull(revision, "revision cannot be null");
+
+        Response response = server.delete("/" + name + "/" + docId+"?rev=" + revision );
+        if (!response.isOk())
+        {
+            throw new DataAccessException("Error deleting document", response);
+        }
+    }
+
+    /**
+     * Deletes the given document.
+     * @param document  document
+     */
+    public void delete(Object document)
+    {
+        String id = DocumentHelper.getId(document);
+        String rev = DocumentHelper.getRevision(document);
+        delete(id,rev);
     }
 
     /**
