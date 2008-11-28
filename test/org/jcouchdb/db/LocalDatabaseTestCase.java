@@ -1,6 +1,7 @@
 package org.jcouchdb.db;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -292,6 +293,30 @@ public class LocalDatabaseTestCase
         List<DocumentInfo> infos = db.bulkCreateDocuments(docs);
 
         assertThat(infos.size(), is(3));
+
+    }
+
+    @Test
+    public void thatBulkCreationWithIdsWorks()
+    {
+        Database db = createDatabaseForTest();
+
+        List<Document> docs = new ArrayList<Document>();
+
+        FooDocument fooDocument = new FooDocument("doc-2");
+        fooDocument.setId("second-foo-with-id");
+        docs.add(new FooDocument("doc-1"));
+
+        docs.add(fooDocument);
+        docs.add(new FooDocument("doc-3"));
+
+        List<DocumentInfo> infos = db.bulkCreateDocuments(docs);
+
+        assertThat(infos.size(), is(3));
+
+        assertThat(infos.get(0).getId().length(), is(greaterThan(0)));
+        assertThat(infos.get(1).getId(), is("second-foo-with-id"));
+        assertThat(infos.get(2).getId().length(), is(greaterThan(0)));
 
     }
 
