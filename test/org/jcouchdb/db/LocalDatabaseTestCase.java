@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -367,5 +368,40 @@ public class LocalDatabaseTestCase
     {
         Database db = createDatabaseForTest();
         db.delete("fakeid", "fakrev");
+    }
+
+    @Test
+    public void thatViewKeyQueryingWorks()
+    {
+        Database db = createDatabaseForTest();
+        ViewResult<FooDocument> result = db.queryViewByKeys("foo/byValue", FooDocument.class, Arrays.asList("doc-1","doc-2"));
+
+        assertThat(result.getRows().size(), is(4));
+        assertThat( valueCount(result,"doc-1"), is(2));
+        assertThat( valueCount(result,"doc-2"), is(2));
+
+    }
+
+    @Test
+    public void thatViewKeyQueryingFromAllDocsWorks()
+    {
+        Database db = createDatabaseForTest();
+        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList("myFooDocId","second-foo-with-id"));
+        assertThat(result.getRows().size(), is(2));
+        assertThat(result.getRows().get(0).getId(), is("myFooDocId"));
+        assertThat(result.getRows().get(1).getId(), is("second-foo-with-id"));
+    }
+
+    private int valueCount(ViewResult<FooDocument> viewResult, String value)
+    {
+        int cnt = 0;
+        for (ViewResultRow<FooDocument> row : viewResult.getRows())
+        {
+            if (row.getValue().getValue().equals(value))
+            {
+                cnt++;
+            }
+        }
+        return cnt;
     }
 }
