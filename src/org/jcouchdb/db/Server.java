@@ -56,12 +56,22 @@ public interface Server
     Response put(String uri, String body) throws CouchDBException;
 
     /**
+     * Send a PUT request to the given URI with
+     * the given byte array body
+     * @param uri
+     * @param contentType   content type
+     * @return
+     */
+    Response put(String uri, byte[] body, String contentType) throws CouchDBException;
+
+    /**
      * Send a POST request to the given URI with
      * the given body
      * @param uri
      * @return
      */
     Response post(String uri, String body) throws CouchDBException;
+
 
     /**
      * Send a DELETE request to the given URI

@@ -20,14 +20,25 @@ public class Response
     protected static Logger log = Logger.getLogger(Response.class);
 
     private int code;
-    private String content;
+    private byte[] content;
 
     private JSONParser parser;
+
+    public Response(int code, byte[] content)
+    {
+        this.code = code;
+        this.content = content;
+
+        if (log.isDebugEnabled())
+        {
+            log.debug(this);
+        }
+    }
 
     public Response(int code, String content)
     {
         this.code = code;
-        this.content = content;
+        this.content = content.getBytes();
 
         if (log.isDebugEnabled())
         {
@@ -54,9 +65,14 @@ public class Response
         return code;
     }
 
-    public String getContent()
+    public byte[] getContent()
     {
         return content;
+    }
+
+    public String getContentAsString()
+    {
+        return new String(content);
     }
 
     /**
@@ -65,7 +81,7 @@ public class Response
      */
     public List getContentAsList()
     {
-        return getParser().parse(ArrayList.class, content);
+        return getParser().parse(ArrayList.class, getContentAsString());
     }
 
     /**
@@ -74,7 +90,7 @@ public class Response
      */
     public Map getContentAsMap()
     {
-        return getParser().parse(HashMap.class, content);
+        return getParser().parse(HashMap.class, getContentAsString());
     }
 
     /**
@@ -85,7 +101,7 @@ public class Response
      */
     public <T> T getContentAsBean(Class<T> cls)
     {
-        return getParser().parse(cls, content);
+        return getParser().parse(cls, getContentAsString());
     }
 
     /**

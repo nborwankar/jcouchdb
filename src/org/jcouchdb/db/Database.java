@@ -572,4 +572,99 @@ public class Database
         m.put("keys", keys);
         return queryViewInternal( ALL_DOCS, cls, null, parser, m);
     }
+
+    /**
+     * Creates the attachment with the given id on the document with the given document id.
+     *
+     * @param docId             document id
+     * @param attachmentId      attachment id
+     * @param revision          document revision or <code>null</code> if the document with the given id does not exist.
+     * @param contentType       content type of the attachment
+     * @param data              data of the attachment
+     * @return new revision
+     */
+    public String createAttachment(String docId, String revision, String attachmentId, String contentType, byte[] data)
+    {
+        Response resp = server.put(attachmentURI(docId, revision, attachmentId) , data, contentType);
+
+        if (!resp.isOk())
+        {
+            throw new DataAccessException("Error creating attachment",resp);
+        }
+        Map<String,String> m = resp.getContentAsMap();
+        return m.get("rev");
+    }
+
+    /**
+     * Updates the attachment with the given id on the document with the given document id and the given revision.
+     *
+     * @param docId             document id
+     * @param revision          document revision
+     * @param attachmentId      attachment id
+     * @param contentType       content type of the attachment
+     * @param data              data of the attachment
+     * @return new revision
+     */
+    public String updateAttachment(String docId, String revision, String attachmentId, String contentType , byte[] data)
+    {
+        Response resp = server.put(attachmentURI(docId, revision, attachmentId) , data, contentType);
+
+        if (!resp.isOk())
+        {
+            throw new DataAccessException("Error updating attachment",resp);
+        }
+        Map<String,String> m = resp.getContentAsMap();
+        return m.get("rev");
+    }
+
+    private String attachmentURI(String docId, String revision, String attachmentId)
+    {
+        String uri = "/" + name + "/" + docId + "/" + attachmentId;
+        if (revision != null)
+        {
+            uri +="?rev="+revision;
+        }
+
+        return uri;
+    }
+
+    /**
+     * Deletes the attachment with the given id on the document with the given document id and the given revision.
+     *
+     * @param docId             document id
+     * @param revision          document revision
+     * @param attachmentId      attachment id
+     * @return new revision
+     */
+    public String deleteAttachment(String docId, String revision, String attachmentId)
+    {
+        Response resp = server.delete(attachmentURI(docId, revision, attachmentId));
+        if (!resp.isOk())
+        {
+            throw new DataAccessException("Error deleting attachment",resp);
+        }
+        Map<String,String> m = resp.getContentAsMap();
+        return m.get("rev");
+    }
+
+    /**
+     * Returns the content of the attachment with the given document id and the given attachment id.
+     *
+     * @param docId             document id
+     * @param attachmentId      attachment id
+     * @return
+     */
+    public byte[] getAttachment(String docId, String attachmentId)
+    {
+        Response resp = server.get("/" + name + "/" + docId + "/" + attachmentId);
+        if (resp.getCode() == 404)
+        {
+            throw new NotFoundException("attachment not found", resp);
+        }
+        else if (!resp.isOk())
+        {
+            throw new DataAccessException("error getting attachment '" + attachmentId + "' of document '"+docId + "': ", resp);
+        }
+        return resp.getContent();
+    }
 }

@@ -1,6 +1,10 @@
 package org.jcouchdb.document;
 
+import java.util.List;
+import java.util.Map;
+
 import org.svenson.JSONProperty;
+import org.svenson.JSONTypeHint;
 /**
  * Interface for Documents used with jcouchdb.
  *
@@ -23,5 +27,11 @@ public interface Document
     String getRevision();
 
     void setRevision(String revision);
+
+    @JSONProperty( value = "_attachments", ignoreIfNull = true)
+    @JSONTypeHint(Attachment.class)
+    Map<String,Attachment> getAttachments();
+
+    void setAttachments(Map<String,Attachment> attachments);
 
 }

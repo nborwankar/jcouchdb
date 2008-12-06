@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.jcouchdb.document.Attachment;
 import org.jcouchdb.document.DesignDocument;
 import org.jcouchdb.document.Document;
 import org.jcouchdb.document.DocumentInfo;
@@ -22,6 +24,7 @@ import org.jcouchdb.document.ViewResultRow;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
+import org.jcouchdb.util.Base64Util;
 import org.junit.Test;
 import org.svenson.JSON;
 
@@ -32,6 +35,8 @@ import org.svenson.JSON;
  */
 public class LocalDatabaseTestCase
 {
+    private static final String ATTACHMENT_CONTENT = "The quick brown fox jumps over the lazy dog.";
+
     private JSON jsonGenerator = new JSON();
 
     private final static String COUCHDB_HOST = "localhost";
@@ -382,16 +387,6 @@ public class LocalDatabaseTestCase
 
     }
 
-    @Test
-    public void thatViewKeyQueryingFromAllDocsWorks()
-    {
-        Database db = createDatabaseForTest();
-        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList("myFooDocId","second-foo-with-id"));
-        assertThat(result.getRows().size(), is(2));
-        assertThat(result.getRows().get(0).getId(), is("myFooDocId"));
-        assertThat(result.getRows().get(1).getId(), is("second-foo-with-id"));
-    }
-
     private int valueCount(ViewResult<FooDocument> viewResult, String value)
     {
         int cnt = 0;
@@ -403,5 +398,68 @@ public class LocalDatabaseTestCase
             }
         }
         return cnt;
+    }
+
+    @Test
+    public void thatViewKeyQueryingFromAllDocsWorks()
+    {
+        Database db = createDatabaseForTest();
+        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList("myFooDocId","second-foo-with-id"));
+        assertThat(result.getRows().size(), is(2));
+        assertThat(result.getRows().get(0).getId(), is("myFooDocId"));
+        assertThat(result.getRows().get(1).getId(), is("second-foo-with-id"));
+    }
+
+    @Test
+    public void thatCreatingInDocumentAttachmentsWorks() throws UnsupportedEncodingException
+    {
+        FooDocument fooDocument = new FooDocument("foo with attachment");
+        fooDocument.addAttachment("test", new Attachment("text/plain", ATTACHMENT_CONTENT.getBytes()));
+
+        Database db = createDatabaseForTest();
+        db.createDocument(fooDocument);
+
+        String id = fooDocument.getId();
+        // re-read document
+        fooDocument = db.getDocument(FooDocument.class, id);
+
+        Attachment attachment = fooDocument.getAttachments().get("test");
+        assertThat(attachment, is(notNullValue()));
+        assertThat(attachment.isStub(), is(true));
+        assertThat(attachment.getContentType(), is("text/plain"));
+        assertThat(attachment.getLength(), is(44l));
+
+        String content = new String(db.getAttachment(id, "test"));
+        assertThat(content, is(ATTACHMENT_CONTENT));
+
+        String newRev = db.updateAttachment(fooDocument.getId(), fooDocument.getRevision(), "test", "text/plain", (ATTACHMENT_CONTENT+"!!").getBytes());
+        assertThat(newRev, is(notNullValue()));
+        assertThat(newRev.length(), is(greaterThan(0)));
+
+        content = new String(db.getAttachment(id, "test"));
+        assertThat(content, is(ATTACHMENT_CONTENT+"!!"));
+
+        newRev = db.deleteAttachment(fooDocument.getId(), newRev, "test");
+
+        assertThat(newRev, is(notNullValue()));
+        assertThat(newRev.length(), is(greaterThan(0)));
+
+        try
+        {
+            content = new String(db.getAttachment(id, "test"));
+            throw new IllegalStateException("attachment should be gone by now");
+        }
+        catch(NotFoundException e)
+        {
+            // yay!
+        }
+
+        newRev = db.createAttachment(fooDocument.getId(), newRev, "test", "text/plain", "TEST".getBytes());
+
+        assertThat(newRev, is(notNullValue()));
+        assertThat(newRev.length(), is(greaterThan(0)));
+
+        content = new String(db.getAttachment(id, "test"));
+        assertThat(content, is("TEST"));
     }
 }

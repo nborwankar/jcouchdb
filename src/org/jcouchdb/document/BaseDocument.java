@@ -1,8 +1,12 @@
 package org.jcouchdb.document;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jcouchdb.util.Util;
 import org.svenson.AbstractDynamicProperties;
 import org.svenson.JSONProperty;
+import org.svenson.JSONTypeHint;
 
 /**
  * Convenience base class for documents. Not abstract so it can be used fully dynamically.
@@ -15,6 +19,7 @@ public class BaseDocument extends AbstractDynamicProperties implements Document
 
     private String id;
     private String revision;
+    private Map<String, Attachment> attachments;
 
     /* (non-Javadoc)
      * @see org.couchblog.db.Document#getId()
@@ -69,5 +74,26 @@ public class BaseDocument extends AbstractDynamicProperties implements Document
     public int hashCode()
     {
         return 17 + Util.safeHashcode(getId()) * 37 + Util.safeHashcode(getRevision()) * 37;
+    }
+
+    @JSONProperty(value="_attachments",ignoreIfNull = true)
+    @JSONTypeHint(Attachment.class)
+    public Map<String, Attachment> getAttachments()
+    {
+        return attachments;
+    }
+
+    public void setAttachments(Map<String, Attachment> attachments)
+    {
+        this.attachments = attachments;
+    }
+
+    public void addAttachment(String name, Attachment attachment)
+    {
+        if (attachments == null)
+        {
+            attachments = new HashMap<String, Attachment>();
+        }
+        attachments.put(name, attachment);
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -103,7 +104,7 @@ public class ServerImpl implements Server
 
             GetMethod method = new GetMethod(uri);
             int code = httpClient.executeMethod(method);
-            return new Response(code, method.getResponseBodyAsString());
+            return new Response(code, method.getResponseBody());
         }
         catch (HttpException e)
         {
@@ -141,7 +142,35 @@ public class ServerImpl implements Server
                 putMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
             }
             int code = httpClient.executeMethod(putMethod);
-            return new Response(code, putMethod.getResponseBodyAsString());
+            return new Response(code, putMethod.getResponseBody());
+        }
+        catch (HttpException e)
+        {
+            throw ExceptionWrapper.wrap(e);
+        }
+        catch (IOException e)
+        {
+            throw ExceptionWrapper.wrap(e);
+        }
+    }
+
+    /* (non-Javadoc)
+     */
+    public Response put(String uri, byte[] body, String contentType)
+    {
+        try
+        {
+            if (log.isDebugEnabled())
+            {
+                log.debug("PUT "+uri+", body = "+body);
+            }
+            PutMethod putMethod = new PutMethod(uri);
+            if (body != null)
+            {
+                putMethod.setRequestEntity(new ByteArrayRequestEntity(body, contentType));
+            }
+            int code = httpClient.executeMethod(putMethod);
+            return new Response(code, putMethod.getResponseBody());
         }
         catch (HttpException e)
         {
@@ -167,7 +196,7 @@ public class ServerImpl implements Server
             PostMethod postMethod = new PostMethod(uri);
             postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
             int code = httpClient.executeMethod(postMethod);
-            return new Response(code, postMethod.getResponseBodyAsString());
+            return new Response(code, postMethod.getResponseBody());
         }
         catch (HttpException e)
         {
@@ -193,7 +222,7 @@ public class ServerImpl implements Server
 
             DeleteMethod deleteMethod = new DeleteMethod(uri);
             int code = httpClient.executeMethod(deleteMethod);
-            return new Response(code, deleteMethod.getResponseBodyAsString());
+            return new Response(code, deleteMethod.getResponseBody());
         }
         catch (HttpException e)
         {
