@@ -7,15 +7,15 @@ import org.svenson.JSONTypeHint;
 
 public class ViewAndDocumentsResult<V,D> extends AbstractViewResult
 {
-    List<DocumentRow<V,D>> rows = new ArrayList<DocumentRow<V,D>>();
+    List<ValueAndDocumentRow<V,D>> rows = new ArrayList<ValueAndDocumentRow<V,D>>();
 
-    public List<DocumentRow<V,D>> getRows()
+    public List<ValueAndDocumentRow<V,D>> getRows()
     {
         return rows;
     }
 
-    @JSONTypeHint(DocumentRow.class)
-    public void setRows(List<DocumentRow<V,D>> rows)
+    @JSONTypeHint(ValueAndDocumentRow.class)
+    public void setRows(List<ValueAndDocumentRow<V,D>> rows)
     {
         this.rows = rows;
     }

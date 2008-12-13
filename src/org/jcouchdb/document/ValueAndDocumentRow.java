@@ -3,14 +3,14 @@ package org.jcouchdb.document;
 import org.svenson.JSONProperty;
 
 /**
- * One row of a view result.
+ * One row of a view result containing a view value and a document.
  *
  * @author shelmberger
  *
- * @param <V> Type of the value wrapped by this view result row.
- * @param <D> document type of the value wrapped by this view result row.
+ * @param <V> type of the contained value
+ * @param <D> type of the contained document
  */
-public class DocumentRow<V,D>
+public class ValueAndDocumentRow<V,D>
     extends ValueRow<V>
 {
     private D document;

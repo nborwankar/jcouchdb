@@ -7,7 +7,9 @@ public class ValueRow<V>
 {
 
     private String id;
+
     private Object key;
+
     private V value;
 
     /**
@@ -22,6 +24,7 @@ public class ValueRow<V>
 
     /**
      * Sets the id of the result object
+     *
      * @param id
      */
     public void setId(String id)
@@ -31,6 +34,7 @@ public class ValueRow<V>
 
     /**
      * Returns the key this object was mapped to
+     *
      * @return
      */
     public Object getKey()
@@ -45,6 +49,7 @@ public class ValueRow<V>
 
     /**
      * Returns the value mapped to this row.
+     *
      * @return
      */
     public V getValue()
@@ -60,7 +65,7 @@ public class ValueRow<V>
     @Override
     public String toString()
     {
-        return super.toString()+": id = "+id+", key = "+key+", value = "+value;
+        return super.toString() + ": id = " + id + ", key = " + key + ", value = " + value;
     }
 
 }

@@ -18,7 +18,7 @@ import org.jcouchdb.document.Attachment;
 import org.jcouchdb.document.DesignDocument;
 import org.jcouchdb.document.Document;
 import org.jcouchdb.document.DocumentInfo;
-import org.jcouchdb.document.DocumentRow;
+import org.jcouchdb.document.ValueAndDocumentRow;
 import org.jcouchdb.document.ValueRow;
 import org.jcouchdb.document.View;
 import org.jcouchdb.document.ViewAndDocumentsResult;
@@ -507,10 +507,10 @@ public class LocalDatabaseTestCase
     {
         Database db = createDatabaseForTest();
         ViewAndDocumentsResult<Object,FooDocument> result = db.queryViewAndDocumentsByKeys("foo/byValue", Object.class, FooDocument.class, Arrays.asList("doc-1"), null, null);
-        List<DocumentRow<Object, FooDocument>> rows = result.getRows();
+        List<ValueAndDocumentRow<Object, FooDocument>> rows = result.getRows();
         assertThat(rows.size(), is(2));
 
-        DocumentRow<Object, FooDocument> row = rows.get(0);
+        ValueAndDocumentRow<Object, FooDocument> row = rows.get(0);
         assertThat(row.getDocument(), is(notNullValue()));
         assertThat(row.getDocument().getValue(), is("doc-1"));
 
