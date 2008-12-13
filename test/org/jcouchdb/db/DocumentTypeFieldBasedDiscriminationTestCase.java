@@ -15,8 +15,8 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jcouchdb.document.BaseDocument;
+import org.jcouchdb.document.ValueRow;
 import org.jcouchdb.document.ViewResult;
-import org.jcouchdb.document.ViewResultRow;
 import org.junit.Test;
 import org.svenson.JSONParser;
 import org.svenson.PropertyValueBasedTypeMapper;
@@ -41,14 +41,14 @@ public class DocumentTypeFieldBasedDiscriminationTestCase
 
         JSONParser parser = new JSONParser();
         PropertyValueBasedTypeMapper mapper = new PropertyValueBasedTypeMapper();
-        mapper.setParsePathInfo(Database.DOCUMENT_TYPE_PATH);
+        mapper.setParsePathInfo(Database.VIEW_QUERY_VALUE_TYPEHINT);
         mapper.addFieldValueMapping("foo", Foo.class);
         mapper.addFieldValueMapping("bar", Bar.class);
         parser.setTypeMapper(mapper);
 
         ViewResult<Map> result = db.listDocuments(null, parser);
 
-        List<ViewResultRow<Map>> rows = result.getRows();
+        List<ValueRow<Map>> rows = result.getRows();
         assertThat(rows.size(), is(3));
 
         Foo foo = (Foo)rows.get(0).getValue();

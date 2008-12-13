@@ -2,21 +2,13 @@ package org.jcouchdb.document;
 
 import org.svenson.AbstractDynamicProperties;
 
-/**
- * One row of a view result.
- *
- * @author shelmberger
- *
- * @param <T> Type of the value wrapped by this view result row.
- */
-public class ViewResultRow<T>
+public class ValueRow<V>
     extends AbstractDynamicProperties
 {
+
     private String id;
-
     private Object key;
-
-    private T value;
+    private V value;
 
     /**
      * Returns the id of the result object
@@ -52,14 +44,15 @@ public class ViewResultRow<T>
     }
 
     /**
+     * Returns the value mapped to this row.
      * @return
      */
-    public T getValue()
+    public V getValue()
     {
         return value;
     }
 
-    public void setValue(T value)
+    public void setValue(V value)
     {
         this.value = value;
     }
@@ -69,4 +62,5 @@ public class ViewResultRow<T>
     {
         return super.toString()+": id = "+id+", key = "+key+", value = "+value;
     }
+
 }

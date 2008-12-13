@@ -18,13 +18,14 @@ import org.jcouchdb.document.Attachment;
 import org.jcouchdb.document.DesignDocument;
 import org.jcouchdb.document.Document;
 import org.jcouchdb.document.DocumentInfo;
+import org.jcouchdb.document.DocumentRow;
+import org.jcouchdb.document.ValueRow;
 import org.jcouchdb.document.View;
+import org.jcouchdb.document.ViewAndDocumentsResult;
 import org.jcouchdb.document.ViewResult;
-import org.jcouchdb.document.ViewResultRow;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
-import org.jcouchdb.util.Base64Util;
 import org.junit.Test;
 import org.svenson.JSON;
 
@@ -172,7 +173,7 @@ public class LocalDatabaseTestCase
 
         ViewResult<Map> result = db.listDocuments();
 
-        List<ViewResultRow<Map>> rows = result.getRows();
+        List<ValueRow<Map>> rows = result.getRows();
 
         assertThat(rows.size(), is(4));
 
@@ -208,7 +209,7 @@ public class LocalDatabaseTestCase
     public void queryDocuments()
     {
         Database db = createDatabaseForTest();
-        ViewResult<FooDocument> result = db.queryView("foo/byValue", FooDocument.class);
+        ViewResult<FooDocument> result = db.queryView("foo/byValue", FooDocument.class, null, null);
 
         assertThat(result.getRows().size(), is(3));
 
@@ -228,14 +229,37 @@ public class LocalDatabaseTestCase
     }
 
     @Test
-    public void queryDocumentsWithComplexKey()
+    public void queryViewAndDocuments()
     {
         Database db = createDatabaseForTest();
-        ViewResult<FooDocument> result = db.queryView("foo/complex", FooDocument.class);
+        ViewAndDocumentsResult<Object,FooDocument> result = db.queryViewAndDocuments("foo/byValue", Object.class, FooDocument.class, null, null);
 
         assertThat(result.getRows().size(), is(3));
 
-        ViewResultRow<FooDocument> row = result.getRows().get(0);
+        FooDocument doc = result.getRows().get(0).getDocument();
+        assertThat(doc, is(notNullValue()));
+        assertThat(doc.getValue(), is("bar!"));
+
+        doc = result.getRows().get(1).getDocument();
+        assertThat(doc, is(notNullValue()));
+        assertThat(doc.getValue(), is("baz!"));
+
+        doc = result.getRows().get(2).getDocument();
+        assertThat(doc, is(notNullValue()));
+        assertThat(doc.getId(), is(MY_FOO_DOC_ID));
+        assertThat(doc.getValue(), is("qux!"));
+
+    }
+
+    @Test
+    public void queryDocumentsWithComplexKey()
+    {
+        Database db = createDatabaseForTest();
+        ViewResult<FooDocument> result = db.queryView("foo/complex", FooDocument.class, null, null);
+
+        assertThat(result.getRows().size(), is(3));
+
+        ValueRow<FooDocument> row = result.getRows().get(0);
         assertThat(jsonGenerator.forValue(row.getKey()), is("[1,{\"value\":\"bar!\"}]"));
 
     }
@@ -259,7 +283,7 @@ public class LocalDatabaseTestCase
     public void thatAdHocViewsWork()
     {
         Database db = createDatabaseForTest();
-        ViewResult<FooDocument>  result = db.queryAdHocView(FooDocument.class, "{ \"map\" : \"function(doc) { if (doc.baz2 == 'Some test value') emit(null,doc);  } \" }");
+        ViewResult<FooDocument>  result = db.queryAdHocView(FooDocument.class, "{ \"map\" : \"function(doc) { if (doc.baz2 == 'Some test value') emit(null,doc);  } \" }", null, null);
 
         assertThat(result.getRows().size(), is(1));
 
@@ -375,22 +399,10 @@ public class LocalDatabaseTestCase
         db.delete("fakeid", "fakrev");
     }
 
-    @Test
-    public void thatViewKeyQueryingWorks()
-    {
-        Database db = createDatabaseForTest();
-        ViewResult<FooDocument> result = db.queryViewByKeys("foo/byValue", FooDocument.class, Arrays.asList("doc-1","doc-2"));
-
-        assertThat(result.getRows().size(), is(4));
-        assertThat( valueCount(result,"doc-1"), is(2));
-        assertThat( valueCount(result,"doc-2"), is(2));
-
-    }
-
     private int valueCount(ViewResult<FooDocument> viewResult, String value)
     {
         int cnt = 0;
-        for (ViewResultRow<FooDocument> row : viewResult.getRows())
+        for (ValueRow<FooDocument> row : viewResult.getRows())
         {
             if (row.getValue().getValue().equals(value))
             {
@@ -400,18 +412,10 @@ public class LocalDatabaseTestCase
         return cnt;
     }
 
-    @Test
-    public void thatViewKeyQueryingFromAllDocsWorks()
-    {
-        Database db = createDatabaseForTest();
-        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList("myFooDocId","second-foo-with-id"));
-        assertThat(result.getRows().size(), is(2));
-        assertThat(result.getRows().get(0).getId(), is("myFooDocId"));
-        assertThat(result.getRows().get(1).getId(), is("second-foo-with-id"));
-    }
+
 
     @Test
-    public void thatCreatingInDocumentAttachmentsWorks() throws UnsupportedEncodingException
+    public void thatAttachmentHandlingWorks() throws UnsupportedEncodingException
     {
         FooDocument fooDocument = new FooDocument("foo with attachment");
         fooDocument.addAttachment("test", new Attachment("text/plain", ATTACHMENT_CONTENT.getBytes()));
@@ -454,6 +458,7 @@ public class LocalDatabaseTestCase
             // yay!
         }
 
+
         newRev = db.createAttachment(fooDocument.getId(), newRev, "test", "text/plain", "TEST".getBytes());
 
         assertThat(newRev, is(notNullValue()));
@@ -462,4 +467,58 @@ public class LocalDatabaseTestCase
         content = new String(db.getAttachment(id, "test"));
         assertThat(content, is("TEST"));
     }
+
+
+    @Test
+    public void thatViewKeyQueryingFromAllDocsWorks()
+    {
+        Database db = createDatabaseForTest();
+        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList("myFooDocId","second-foo-with-id"), null, null);
+        assertThat(result.getRows().size(), is(2));
+        assertThat(result.getRows().get(0).getId(), is("myFooDocId"));
+        assertThat(result.getRows().get(1).getId(), is("second-foo-with-id"));
+    }
+
+
+    @Test
+    public void thatViewKeyQueryingFromAllDocsWorks2()
+    {
+        Database db = createDatabaseForTest();
+        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList("myFooDocId","second-foo-with-id"), null, null);
+        assertThat(result.getRows().size(), is(2));
+        assertThat(result.getRows().get(0).getId(), is("myFooDocId"));
+        assertThat(result.getRows().get(1).getId(), is("second-foo-with-id"));
+    }
+
+    @Test
+    public void thatViewKeyQueryingWorks()
+    {
+        Database db = createDatabaseForTest();
+        ViewResult<FooDocument> result = db.queryViewByKeys("foo/byValue", FooDocument.class, Arrays.asList("doc-1","doc-2"), null, null);
+
+        assertThat(result.getRows().size(), is(4));
+        assertThat( valueCount(result,"doc-1"), is(2));
+        assertThat( valueCount(result,"doc-2"), is(2));
+
+    }
+
+    @Test
+    public void thatViewAndDocumentQueryingWorks()
+    {
+        Database db = createDatabaseForTest();
+        ViewAndDocumentsResult<Object,FooDocument> result = db.queryViewAndDocumentsByKeys("foo/byValue", Object.class, FooDocument.class, Arrays.asList("doc-1"), null, null);
+        List<DocumentRow<Object, FooDocument>> rows = result.getRows();
+        assertThat(rows.size(), is(2));
+
+        DocumentRow<Object, FooDocument> row = rows.get(0);
+        assertThat(row.getDocument(), is(notNullValue()));
+        assertThat(row.getDocument().getValue(), is("doc-1"));
+
+        row = rows.get(1);
+        assertThat(row.getDocument(), is(notNullValue()));
+        assertThat(row.getDocument().getValue(), is("doc-1"));
+
+
+    }
+
 }

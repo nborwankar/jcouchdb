@@ -11,7 +11,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jcouchdb.document.ViewResult;
-import org.jcouchdb.document.ViewResultRow;
+import org.jcouchdb.document.ValueRow;
 import org.junit.Test;
 import org.svenson.JSONParser;
 
@@ -28,14 +28,14 @@ public class JSONParserTestCase
             "test/org/jcouchdb/json/test-files/view-result.json"));
         log.info("json = " + json);
 
-        parser.addTypeHint(".rows[]", ViewResultRow.class);
+        parser.addTypeHint(".rows[]", ValueRow.class);
         parser.addTypeHint(".rows[].value", ContentBean.class);
         ViewResult<ContentBean> viewResult = parser.parse(ViewResult.class, json);
 
         assertThat(viewResult, is(notNullValue()));
         assertThat(viewResult.getRows().size(), is(2));
 
-        List<ViewResultRow<ContentBean>> rows = viewResult.getRows();
+        List<ValueRow<ContentBean>> rows = viewResult.getRows();
         ContentBean content = rows.get(0).getValue();
         assertThat(content, is(notNullValue()));
         assertThat(content.getId(),is("doc1"));

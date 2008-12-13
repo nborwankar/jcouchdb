@@ -30,6 +30,22 @@ public class Options extends HashMap<String, Object>
     {
     }
 
+    /**
+     * Copies the options of the given Options object if it is not <code>null</code>.
+     *
+     * @param options   Options to be copied, can be <code>null</code>.
+     */
+    public Options(Options options)
+    {
+        if (options != null)
+        {
+            for (Map.Entry<String, Object> e : options.entrySet())
+            {
+                put(e.getKey(),e.getValue());
+            }
+        }
+    }
+
     public Options(String key, Object value)
     {
         put(key, value);
@@ -79,6 +95,21 @@ public class Options extends HashMap<String, Object>
     public Options skip(int skip)
     {
         return put("skip",skip);
+    }
+
+    public Options group(boolean group)
+    {
+        return put("group",group);
+    }
+
+    public Options reduce(boolean reduce)
+    {
+        return put("reduce",reduce);
+    }
+
+    public Options includeDocs(boolean includeDocs)
+    {
+        return put("include_docs",includeDocs);
     }
 
     public String toQuery()

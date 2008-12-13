@@ -1,6 +1,7 @@
 package org.jcouchdb.db;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,7 +118,7 @@ public class Response
     @Override
     public String toString()
     {
-        return super.toString()+": code = "+code+", content = "+content;
+        return super.toString()+": code = "+code+", content = "+new String(content);
     }
 }
 

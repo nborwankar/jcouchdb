@@ -10,49 +10,19 @@ import org.svenson.JSONTypeHint;
  *
  * @author shelmberger
  *
- * @param <T>   type of the view result rows.
+ * @param <V>   type of the view result rows.
  */
-public class ViewResult<T> extends BaseDocument
+public class ViewResult<V> extends AbstractViewResult<V>
 {
-    private int totalRows;
+    List<ValueRow<V>> rows = new ArrayList<ValueRow<V>>();
 
-    private int offset;
-
-    private List<ViewResultRow<T>> rows = new ArrayList<ViewResultRow<T>>();
-
-    public int getTotalRows()
-    {
-        return totalRows;
-    }
-
-    public void setTotalRows(int totalRows)
-    {
-        this.totalRows = totalRows;
-    }
-
-    public int getOffset()
-    {
-        return offset;
-    }
-
-    public void setOffset(int offset)
-    {
-        this.offset = offset;
-    }
-
-    public List<ViewResultRow<T>> getRows()
+    public List<ValueRow<V>> getRows()
     {
         return rows;
     }
 
-    @JSONTypeHint(ViewResultRow.class)
-    public void setRows(List<ViewResultRow<T>> rows)
-    {
-        this.rows = rows;
-    }
-
-    @JSONTypeHint(ViewResultRow.class)
-    public void setViews(List<ViewResultRow<T>> rows)
+    @JSONTypeHint(ValueRow.class)
+    public void setRows(List<ValueRow<V>> rows)
     {
         this.rows = rows;
     }
@@ -60,6 +30,6 @@ public class ViewResult<T> extends BaseDocument
     @Override
     public String toString()
     {
-        return super.toString()+": totalRows = "+totalRows+", offset = "+offset+", rows = "+rows;
+        return super.toString()+ ", value rows = " + rows;
     }
 }

@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.jcouchdb.document.AbstractViewResult;
 import org.jcouchdb.document.DesignDocument;
 import org.jcouchdb.document.DocumentHelper;
 import org.jcouchdb.document.DocumentInfo;
+import org.jcouchdb.document.ViewAndDocumentsResult;
 import org.jcouchdb.document.ViewResult;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
@@ -29,7 +31,8 @@ public class Database
 
     private JSON jsonGenerator = new JSON();
 
-    static final String DOCUMENT_TYPE_PATH = ".rows[].value";
+    static final String VIEW_QUERY_VALUE_TYPEHINT = ".rows[].value";
+    private static final String VIEW_QUERY_DOCUMENT_TYPEHINT = ".rows[].doc";
 
     protected static Logger log = Logger.getLogger(Database.class);
 
@@ -37,6 +40,7 @@ public class Database
      * Name of the all docs view.
      */
     private static final String ALL_DOCS = "_all_docs";
+
 
     private String name;
 
@@ -140,11 +144,11 @@ public class Database
     /**
      * Returns the document with the given id and converts it to the given class.
      *
-     * @param <T>   type
+     * @param <D>   type
      * @param cls   runtime class info
      * @param docId document id
      */
-    public <T> T getDocument(Class<T> cls, String docId)
+    public <D> D getDocument(Class<D> cls, String docId)
     {
         return getDocument(cls,docId,null);
     }
@@ -153,13 +157,13 @@ public class Database
      * Returns the document with the given id and converts it to the given class with
      * the given configured JSONParser
      *
-     * @param <T>       type
+     * @param <D>       type
      * @param cls       runtime class info
      * @param docId     document id
      * @param parser    configured parser
      * @return
      */
-    public <T> T getDocument(Class<T> cls, String docId, JSONParser parser)
+    public <D> D getDocument(Class<D> cls, String docId, JSONParser parser)
     {
         Assert.notNull(cls, "class cannot be null");
         Assert.notNull(docId, "document id cannot be null");
@@ -330,98 +334,55 @@ public class Database
         return listDocuments(null,null);
     }
 
-    /**
-     * Lists all documents as maps.
-     * @param options query options
-     * @return
-     */
-    public ViewResult<Map> listDocuments(Options options)
-    {
-        return listDocuments(options,null);
-    }
-
     public ViewResult<Map> listDocuments(Options options, JSONParser parser)
     {
-        return queryViewInternal(ALL_DOCS, Map.class, options, parser, null);
+        return (ViewResult<Map>)queryViewInternal(ALL_DOCS, Map.class, null, options, parser, null);
     }
 
     /**
      * Queries the view with the given name and converts the received views
      * to the given type
-     * @param <T>       type
-     * @param viewName  view name
-     * @param cls       runtime type information
-     * @return
-     */
-    public <T> ViewResult<T> queryView(String viewName, Class<T> cls)
-    {
-        return queryView(viewName, cls, null);
-    }
-
-    /**
-     * Queries the view with the given name and converts the received views
-     * to the given type
-     * @param <T>       type
-     * @param viewName  view name
-     * @param cls       runtime type information
-     * @param options   query options
-     * @return
-     */
-    public <T> ViewResult<T> queryView(String viewName, Class<T> cls, Options options)
-    {
-        return queryView(viewName, cls, options, null);
-    }
-
-    /**
-     * Queries the view with the given name and converts the received views
-     * to the given type
-     * @param <T>       type
+     * @param <V>       type
      * @param viewName  view name
      * @param cls       runtime type information
      * @param options   query options
      * @param parser    configured JSON Parser
      * @return
      */
-    public <T> ViewResult<T> queryView(String viewName, Class<T> cls, Options options, JSONParser parser)
+    public <V> ViewResult<V> queryView(String viewName, Class<V> cls, Options options, JSONParser parser)
     {
-        return queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, cls, options, parser, null);
+        return (ViewResult<V>)queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, cls, null, options, parser, null);
     }
 
+
     /**
-     * Executes the given map / reduce functions and convert the response to a view result of the given class.
-     * @param <T>   type
-     * @param cls   runtime type info
-     * @param fn    map / reduce function as valid JSON string (e.g. <code>{ "map" : "function(doc) { emit(null,doc);" }</code>
+     * Queries the view and the documents with the given name and converts the received views and documents.
+     *
+     * to the given type
+     * @param <V>           value type
+     * @param <D>           document type
+     * @param viewName      view name
+     * @param valueClass    runtime value type information
+     * @param documentClass runtime document type information
+     * @param options       query options
+     * @param parser        configured JSON Parser
      * @return
      */
-    public <T> ViewResult<T> queryAdHocView(Class<T> cls, String fn)
+    public <V,D> ViewAndDocumentsResult<V,D> queryViewAndDocuments(String viewName, Class<V> valueClass, Class<D> documentClass, Options options, JSONParser parser)
     {
-        return queryAdHocView(cls, fn, null, null);
+        return (ViewAndDocumentsResult<V,D>)queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, valueClass, documentClass, options, parser, null);
     }
 
     /**
      * Executes the given map / reduce functions and convert the response to a view result of the given class.
-     * @param <T>       type
-     * @param cls       runtime type info
-     * @param fn        map / reduce function as valid JSON string (e.g. <code>{ "map" : "function(doc) { emit(null,doc);" }</code>
-     * @param options   query options
-     * @return
-     */
-    public <T> ViewResult<T> queryAdHocView(Class<T> cls, String fn, Options options)
-    {
-        return queryAdHocView(cls, fn, options, null);
-    }
-
-    /**
-     * Executes the given map / reduce functions and convert the response to a view result of the given class.
-     * @param <T>       type
+     * @param <V>       type
      * @param cls       runtime type info
      * @param fn        map / reduce function as valid JSON string (e.g. <code>{ "map" : "function(doc) { emit(null,doc);" }</code>
      * @param options   query options
      * @param parser    configured {@link JSONParser}
      * @return
      */
-    public <T> ViewResult<T> queryAdHocView(Class<T> cls, String fn, Options options, JSONParser parser)
+    public <V> ViewResult<V> queryAdHocView(Class<V> cls, String fn, Options options, JSONParser parser)
     {
         if (cls == null)
         {
@@ -450,7 +411,7 @@ public class Database
         {
             parser = new JSONParser();
         }
-        parser.addTypeHint(DOCUMENT_TYPE_PATH, cls);
+        parser.addTypeHint(VIEW_QUERY_VALUE_TYPEHINT, cls);
         resp.setParser(parser);
         return resp.getContentAsBean(ViewResult.class);
     }
@@ -458,26 +419,38 @@ public class Database
     /**
      * Internal view query method.
      *
-     * @param <T>       type to parse the response into
+     * @param <V>       type to parse the response into
      * @param viewName  view name
-     * @param cls       runtime type
+     * @param valueClass       runtime type
+     * @param documentClass TODO
      * @param options   query options
      * @param parser    parser to parse the response with
      * @param keys      keys to query, if this is not <code>null</code>, a POST request with the keys as JSON will be done.
      * @return
      */
-    private <T> ViewResult<T> queryViewInternal(String viewName, Class<T> cls, Options options, JSONParser parser, Object keys)
+    private <V> AbstractViewResult<V> queryViewInternal(String viewName, Class<V> valueClass, Class documentClass, Options options, JSONParser parser, Object keys)
     {
         if (viewName == null)
         {
             throw new IllegalArgumentException("view name cannot be null");
         }
-        if (cls == null)
+        if (valueClass == null)
         {
             throw new IllegalArgumentException("class cannot be null");
         }
 
         String uri = "/" + this.name + "/" + viewName;
+
+        boolean isDocumentQuery = documentClass != null;
+
+        if (isDocumentQuery)
+        {
+            if (options == null)
+            {
+                options = new Options();
+            }
+            options.includeDocs(true);
+        }
 
         if (options != null)
         {
@@ -498,6 +471,7 @@ public class Database
         {
             resp = server.post(uri, jsonGenerator.forValue(keys));
         }
+
         if (!resp.isOk())
         {
             throw new DataAccessException("error querying view", resp);
@@ -507,70 +481,88 @@ public class Database
         {
             parser = new JSONParser();
         }
-        parser.addTypeHint(DOCUMENT_TYPE_PATH, cls);
+        parser.addTypeHint(VIEW_QUERY_VALUE_TYPEHINT, valueClass);
         resp.setParser(parser);
-        return resp.getContentAsBean(ViewResult.class);
+
+        if (isDocumentQuery)
+        {
+            parser.addTypeHint(VIEW_QUERY_DOCUMENT_TYPEHINT, documentClass);
+            return resp.getContentAsBean(ViewAndDocumentsResult.class);
+        }
+        else
+        {
+            return resp.getContentAsBean(ViewResult.class);
+        }
     }
+
 
     /**
      * Queries the given keys from the view with the given name.
      *
-     * @param <T>           Type parse the queried documents into
-     * @param viewName      view name
-     * @param cls           runtime type info
-     * @param keys          list of keys to query
-     * @return view result
-     */
-    public <T> ViewResult<T> queryViewByKeys(String viewName, Class<T> cls, List<?> keys)
-    {
-        return queryViewByKeys( viewName, cls, keys, null);
-    }
-
-    /**
-     * Queries the given keys from the view with the given name.
-     *
-     * @param <T>           Type parse the queried documents into
+     * @param <V>           Type parse the queried documents into
      * @param viewName      view name
      * @param cls           runtime type info
      * @param keys          list of keys to query
      * @param parser        configured JSON parser
      * @return view result
      */
-    public <T> ViewResult<T> queryViewByKeys(String viewName, Class<T> cls, List<?> keys, JSONParser parser)
+    public <V> ViewResult<V> queryViewByKeys(String viewName, Class<V> cls, List<?> keys, Options options, JSONParser parser)
     {
         Map<String, Object> m = new HashMap<String, Object>();
         m.put("keys", keys);
-        return queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, cls, null, parser, m);
+        return (ViewResult<V>)queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, cls, null, options, parser, m);
+    }
+
+    /**
+     * Queries the given keys and documents from the view with the given name.
+     *
+     * @param <V>               Type parse the queried documents into
+     * @param viewName          view name
+     * @param valueClass        runtime value type info
+     * @param documentClass     runtime document type info
+     * @param keys              list of keys to query
+     * @param parser            configured JSON parser
+     * @return view result
+     */
+    public <V,D> ViewAndDocumentsResult<V,D> queryViewAndDocumentsByKeys(String viewName, Class<V> valueClass, Class<D> documentClass, List<?> keys, Options options, JSONParser parser)
+    {
+        Map<String, Object> m = new HashMap<String, Object>();
+        m.put("keys", keys);
+        return (ViewAndDocumentsResult<V,D>)queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, valueClass, documentClass, options, parser, m);
     }
 
     /**
      * Queries the given keys from the all documents view.
      *
-     * @param <T>           Type parse the queried documents into
-     * @param viewName      view name
-     * @param cls           runtime type info
-     * @param keys          list of keys to query
-     * @return view result
-     */
-    public <T> ViewResult<T> queryByKeys(Class<T> cls, List<?> keys)
-    {
-        return queryByKeys( cls, keys, null);
-    }
-    /**
-     * Queries the given keys from the all documents view.
-     *
-     * @param <T>           Type parse the queried documents into
+     * @param <V>           Type parse the queried documents into
      * @param viewName      view name
      * @param cls           runtime type info
      * @param keys          list of keys to query
      * @param parser        configured JSON parser
      * @return view result
      */
-    public <T> ViewResult<T> queryByKeys(Class<T> cls, List<?> keys, JSONParser parser)
+    public <V> ViewResult<V> queryByKeys(Class<V> cls, List<?> keys, Options options, JSONParser parser)
     {
         Map<String, Object> m = new HashMap<String, Object>();
         m.put("keys", keys);
-        return queryViewInternal( ALL_DOCS, cls, null, parser, m);
+        return (ViewResult<V>)queryViewInternal( ALL_DOCS, cls, null, options, parser, m);
+    }
+
+    /**
+     * Queries the given keys from the all documents view.
+     *
+     * @param <V>           Type parse the queried documents into
+     * @param viewName      view name
+     * @param cls           runtime type info
+     * @param keys          list of keys to query
+     * @param parser        configured JSON parser
+     * @return view result
+     */
+    public <V,D> ViewAndDocumentsResult<V,D> queryDocumentsByKeys(Class<V> cls, Class<D> documentClass, List<?> keys, Options options, JSONParser parser)
+    {
+        Map<String, Object> m = new HashMap<String, Object>();
+        m.put("keys", keys);
+        return (ViewAndDocumentsResult<V,D>)queryViewInternal( ALL_DOCS, cls, documentClass, options, parser, m);
     }
 
     /**
