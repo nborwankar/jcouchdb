@@ -54,7 +54,7 @@ public class LocalDatabaseTestCase
 
     protected static Logger log = Logger.getLogger(LocalDatabaseTestCase.class);
 
-    private Database createDatabaseForTest()
+    public static Database createDatabaseForTest()
     {
         return new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
     }
@@ -473,9 +473,9 @@ public class LocalDatabaseTestCase
     public void thatViewKeyQueryingFromAllDocsWorks()
     {
         Database db = createDatabaseForTest();
-        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList("myFooDocId","second-foo-with-id"), null, null);
+        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList(MY_FOO_DOC_ID,"second-foo-with-id"), null, null);
         assertThat(result.getRows().size(), is(2));
-        assertThat(result.getRows().get(0).getId(), is("myFooDocId"));
+        assertThat(result.getRows().get(0).getId(), is(MY_FOO_DOC_ID));
         assertThat(result.getRows().get(1).getId(), is("second-foo-with-id"));
     }
 
@@ -484,9 +484,9 @@ public class LocalDatabaseTestCase
     public void thatViewKeyQueryingFromAllDocsWorks2()
     {
         Database db = createDatabaseForTest();
-        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList("myFooDocId","second-foo-with-id"), null, null);
+        ViewResult<Map> result = db.queryByKeys(Map.class, Arrays.asList(MY_FOO_DOC_ID,"second-foo-with-id"), null, null);
         assertThat(result.getRows().size(), is(2));
-        assertThat(result.getRows().get(0).getId(), is("myFooDocId"));
+        assertThat(result.getRows().get(0).getId(), is(MY_FOO_DOC_ID));
         assertThat(result.getRows().get(1).getId(), is("second-foo-with-id"));
     }
 

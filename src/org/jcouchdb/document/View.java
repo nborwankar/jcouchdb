@@ -1,5 +1,6 @@
 package org.jcouchdb.document;
 
+
 /**
  * Encapsulates a view inside a {@link DesignDocument}.
  *
@@ -33,7 +34,14 @@ public class View
 
     public void setMap(String map)
     {
-        this.map = map;
+        if (map != null && map.length() > 0)
+        {
+            this.map = map;
+        }
+        else
+        {
+            this.map = null;
+        }
     }
 
     public String getReduce()
@@ -43,6 +51,19 @@ public class View
 
     public void setReduce(String reduce)
     {
-        this.reduce = reduce;
+        if (reduce != null && reduce.length() > 0)
+        {
+            this.reduce = reduce;
+        }
+        else
+        {
+            this.reduce = null;
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return super.toString()+": map = '"+map+", reduce='"+reduce+"'";
     }
 }

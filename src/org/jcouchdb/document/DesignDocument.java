@@ -117,4 +117,10 @@ public class DesignDocument
 
     }
 
+    @Override
+    public String toString()
+    {
+        return super.toString()+": views = "+views;
+    }
+
 }

@@ -96,4 +96,10 @@ public class BaseDocument extends AbstractDynamicProperties implements Document
         }
         attachments.put(name, attachment);
     }
+
+    @Override
+    public String toString()
+    {
+        return super.toString()+": _id = "+id+", _rev = "+revision;
+    }
 }

@@ -60,6 +60,7 @@
 			<fileset dir="${project.sources}">
 				<include name="**/*.properties" />
 				<include name="**/*.xml" />
+				<include name="**/*.xsd" />
 			</fileset>
 		</copy>
 	</target>
@@ -75,6 +76,7 @@
 				<include name="**/*"/>
 				<exclude name="bin/org/**/*"/>
 				<exclude name="bin/log4j.properties"/>
+				<exclude name="lib/compile/spring*.jar"/>
 				<exclude name="reports/**/*"/>
 			</zipfileset>
 		</zip>
