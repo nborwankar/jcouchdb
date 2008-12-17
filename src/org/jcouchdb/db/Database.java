@@ -41,6 +41,8 @@ public class Database
      */
     private static final String ALL_DOCS = "_all_docs";
 
+    private static final String ALL_DOCS_BY_SEQ = "_all_docs_by_seq";
+
 
     private String name;
 
@@ -326,17 +328,26 @@ public class Database
     }
 
     /**
-     * Lists all documents as maps.
+     * List all documents in the database.
+     *
+     * @param options
+     * @param parser
      * @return
      */
-    public ViewResult<Map> listDocuments()
-    {
-        return listDocuments(null,null);
-    }
-
     public ViewResult<Map> listDocuments(Options options, JSONParser parser)
     {
         return (ViewResult<Map>)queryViewInternal(ALL_DOCS, Map.class, null, options, parser, null);
+    }
+
+    /**
+     * Lists all documents in the database in the order they were last updated.
+     * @param options
+     * @param parser
+     * @return
+     */
+    public ViewResult<Map> listDocumentsByUpdateSequence(Options options, JSONParser parser)
+    {
+        return (ViewResult<Map>)queryViewInternal(ALL_DOCS_BY_SEQ, Map.class, null, options, parser, null);
     }
 
     /**

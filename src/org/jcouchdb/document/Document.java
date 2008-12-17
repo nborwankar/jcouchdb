@@ -1,6 +1,5 @@
 package org.jcouchdb.document;
 
-import java.util.List;
 import java.util.Map;
 
 import org.svenson.JSONProperty;

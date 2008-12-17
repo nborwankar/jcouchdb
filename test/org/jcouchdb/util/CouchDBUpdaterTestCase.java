@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.jcouchdb.db.Database;
 import org.jcouchdb.db.LocalDatabaseTestCase;
 import org.jcouchdb.document.DesignDocument;
 import org.junit.Ignore;
