@@ -1,0 +1,10 @@
+jcouchdb JSON library change log:
+=================================
+
+Changes from 0.7 to 0.7.1:
+
+ * added Database.listDocumentsByUpdateSequence()
+ * added file based design document updating tool: org.jcouchdb.util.CouchDBUpdater
+ * added org.jcouchdb.spring.SpringCouchDBUpdater as spring wrapper for org.jcouchdb.util.CouchDBUpdater (spring is not included as dependency!)
+ * updated to svenson 1.2.4
+
