@@ -15,8 +15,9 @@ import org.svenson.JSON;
  * database.queryView("company/all", Map.class, new Options().count(1).descending(true);
  * </pre>
  *
- * @see Database#queryView(String, Class, Options)
- * @see Database#queryAdHocView(Class, String, Options)
+ * @see Database#getDocument(Class, String)
+ * @see Database#queryView(String, Class, Options, JSONParser)
+ * @see Database#queryAdHocView(Class, String, Options, JSONParser)
  * @author shelmberger
  *
  */

@@ -16,6 +16,7 @@
 	<property name="project.build" location="bin" />
 	<property name="project.classes" location="${project.build}" />
 	<property name="project.libs" location="lib" />
+	<property name="project.javadoc" location="jcouchdb-javadoc" />
 
 	<property name="project.reports" location="reports" />
 
@@ -65,7 +66,7 @@
 		</copy>
 	</target>
 
-	<target name="dist" depends="compile" description="Create distribution files">
+	<target name="dist" depends="compile,javadoc" description="Create distribution files">
 		<jar destfile="${project.build}/${ant.project.name}-${project.version}.jar">
 			<metainf dir="${basedir}/res" includes="**/*"/>
 			<fileset dir="${project.classes}" includes="**/*" excludes="log4j.properties,**/*.jar" />
@@ -101,12 +102,17 @@
 		</junit>
 	</target>
 
-	<target name="javadoc">
+	<target name="javadoc" depends="init">
+		
+		<delete includeemptydirs="true">
+			<fileset dir="${project.javadoc}" includes="**/*"/>
+		</delete>
+		
 		<javadoc 
 		  	packagenames="org.jcouchdb.*"
 			sourcepath="src"
   			defaultexcludes="yes"
-			destdir="jcouchdb-javadoc"
+			destdir="${project.javadoc}"
  			author="true"
   			version="true"
   			use="true"

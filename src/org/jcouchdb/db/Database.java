@@ -546,7 +546,6 @@ public class Database
      * Queries the given keys from the all documents view.
      *
      * @param <V>           Type parse the queried documents into
-     * @param viewName      view name
      * @param cls           runtime type info
      * @param keys          list of keys to query
      * @param parser        configured JSON parser
@@ -563,7 +562,6 @@ public class Database
      * Queries the given keys from the all documents view.
      *
      * @param <V>           Type parse the queried documents into
-     * @param viewName      view name
      * @param cls           runtime type info
      * @param keys          list of keys to query
      * @param parser        configured JSON parser
