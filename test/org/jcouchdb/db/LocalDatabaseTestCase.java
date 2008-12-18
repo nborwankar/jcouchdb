@@ -1,30 +1,17 @@
 package org.jcouchdb.db;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.jcouchdb.document.Attachment;
-import org.jcouchdb.document.DesignDocument;
-import org.jcouchdb.document.Document;
-import org.jcouchdb.document.DocumentInfo;
-import org.jcouchdb.document.ValueAndDocumentRow;
 import org.jcouchdb.document.ValueRow;
-import org.jcouchdb.document.View;
-import org.jcouchdb.document.ViewAndDocumentsResult;
 import org.jcouchdb.document.ViewResult;
-import org.jcouchdb.exception.DataAccessException;
-import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
 import org.junit.Test;
 import org.svenson.JSON;
