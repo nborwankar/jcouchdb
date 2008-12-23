@@ -1,5 +1,8 @@
 package org.jcouchdb.document;
 
+import org.apache.log4j.Logger;
+import org.jcouchdb.util.Util;
+
 
 /**
  * Encapsulates a view inside a {@link DesignDocument}.
@@ -9,6 +12,8 @@ package org.jcouchdb.document;
  */
 public class View
 {
+    private static Logger log = Logger.getLogger(View.class);
+
     private String map,reduce;
 
     public View()
@@ -59,6 +64,25 @@ public class View
         {
             this.reduce = null;
         }
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        boolean result = false;
+        if (obj instanceof View)
+        {
+            View that = (View) obj;
+            result = Util.equals(this.getMap(), that.getMap()) &&
+                Util.equals(this.getReduce(), that.getReduce());
+        }
+        return result;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return 17 + 37 * Util.safeHashcode(this.getMap()) + 37 * Util.safeHashcode(this.getReduce());
     }
 
     @Override
