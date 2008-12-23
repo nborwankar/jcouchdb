@@ -1,11 +1,11 @@
 package org.jcouchdb.db;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.jcouchdb.document.InstanceCachable;
 import org.svenson.JSONParser;
 
 /**
@@ -24,6 +24,10 @@ public class Response
 
     private JSONParser parser;
 
+    private Map<Class,Object> responseCache = new HashMap<Class,Object>();
+
+    private String stringContent;
+
     public Response(int code, byte[] content)
     {
         this.code = code;
@@ -38,7 +42,8 @@ public class Response
     public Response(int code, String content)
     {
         this.code = code;
-        this.content = content.getBytes();
+        this.content = null;
+        this.stringContent = content;
 
         if (log.isDebugEnabled())
         {
@@ -67,12 +72,22 @@ public class Response
 
     public byte[] getContent()
     {
+        if (content == null)
+        {
+            content = stringContent.getBytes();
+        }
+
         return content;
     }
 
     public String getContentAsString()
     {
-        return new String(content);
+        if (stringContent == null)
+        {
+            stringContent = new String(content);
+            content = null;
+        }
+        return stringContent;
     }
 
     /**
@@ -81,7 +96,7 @@ public class Response
      */
     public List getContentAsList()
     {
-        return getParser().parse(ArrayList.class, getContentAsString());
+        return getParser().parse(List.class, getContentAsString());
     }
 
     /**
@@ -90,7 +105,7 @@ public class Response
      */
     public Map getContentAsMap()
     {
-        return getParser().parse(HashMap.class, getContentAsString());
+        return getParser().parse(Map.class, getContentAsString());
     }
 
     /**
@@ -101,7 +116,24 @@ public class Response
      */
     public <T> T getContentAsBean(Class<T> cls)
     {
-        return getParser().parse(cls, getContentAsString());
+        T cached = null;
+
+        boolean instanceCachable = cls.getAnnotation(InstanceCachable.class) != null;
+
+        if (instanceCachable)
+        {
+            cached = (T)responseCache.get(cls);
+        }
+        if (cached == null)
+        {
+            cached = getParser().parse(cls, getContentAsString());
+
+            if (instanceCachable)
+            {
+                responseCache.put(cls, cached);
+            }
+        }
+        return cached;
     }
 
     /**
@@ -117,7 +149,7 @@ public class Response
     @Override
     public String toString()
     {
-        return super.toString()+": code = "+code+", content = "+new String(content);
+        return super.toString()+": code = "+code+", content = "+( stringContent != null ? stringContent : new String(content));
     }
 }
 
