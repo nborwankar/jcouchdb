@@ -1,6 +1,11 @@
 jcouchdb JSON library change log:
 =================================
 
+Changes from 0.7.1 to 0.7.2:
+
+ * switched to svenson 1.2.6 which fixes a major bug with trailing commas in the JSON output of pure BaseDocuments
+ * bugfix: Only update design documents in CouchDB Updater that have actually changed.
+
 Changes from 0.7 to 0.7.1:
 
  * added Database.listDocumentsByUpdateSequence()
