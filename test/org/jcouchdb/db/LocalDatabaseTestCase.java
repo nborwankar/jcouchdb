@@ -1,6 +1,7 @@
 package org.jcouchdb.db;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.jcouchdb.document.Attachment;
+import org.jcouchdb.document.BaseDocument;
 import org.jcouchdb.document.DesignDocument;
 import org.jcouchdb.document.Document;
 import org.jcouchdb.document.DocumentInfo;
@@ -27,6 +29,7 @@ import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
 import org.junit.Test;
+import org.springframework.util.StringUtils;
 import org.svenson.JSON;
 
 /**
@@ -537,6 +540,29 @@ public class LocalDatabaseTestCase
         assertThat(row.getDocument(), is(notNullValue()));
         assertThat(row.getDocument().getValue(), is("doc-1"));
 
+
+    }
+
+    @Test
+    public void testPureBaseDocumentAccess()
+    {
+        Database db = createDatabaseForTest();
+
+        BaseDocument newdoc = new BaseDocument();
+        final String value = "baz403872349";
+        newdoc.setProperty("foo",value); // same as JSON: { foo: "baz"; }
+
+        assertThat(newdoc.getId(), is(nullValue()));
+        assertThat(newdoc.getRevision(), is(nullValue()));
+
+        db.createDocument(newdoc); // auto-generated id given by the database
+
+        assertThat(newdoc.getId().length(), is(greaterThan(0)));
+        assertThat(newdoc.getRevision().length(), is(greaterThan(0)));
+
+        BaseDocument doc = db.getDocument(BaseDocument.class, newdoc.getId());
+
+        assertThat((String)doc.getProperty("foo"), is(value));
 
     }
 
