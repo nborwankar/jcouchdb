@@ -11,7 +11,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.jcouchdb.db.LocalDatabaseTestCase;
 import org.jcouchdb.document.DesignDocument;
-import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -20,7 +19,7 @@ public class CouchDBUpdaterTestCase
     private static Logger log = Logger.getLogger(CouchDBUpdaterTestCase.class);
 
     @Test
-    @Ignore
+
     public void thatDesignDocumentReadingWorks() throws IOException
     {
         CouchDBUpdater couchDBUpdater = new CouchDBUpdater();

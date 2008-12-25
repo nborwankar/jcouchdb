@@ -29,6 +29,12 @@ public class Options extends HashMap<String, Object>
 
     public Options()
     {
+
+    }
+
+    public Options(Map<String,String> map)
+    {
+        putAll(map);
     }
 
     /**
