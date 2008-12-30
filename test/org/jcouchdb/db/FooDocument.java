@@ -4,6 +4,10 @@ import org.jcouchdb.document.BaseDocument;
 
 public class FooDocument extends BaseDocument
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5171600814795175855L;
     private String type="foo",value;
 
     public FooDocument()

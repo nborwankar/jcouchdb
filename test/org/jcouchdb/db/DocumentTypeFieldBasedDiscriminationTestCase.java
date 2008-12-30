@@ -65,6 +65,10 @@ public class DocumentTypeFieldBasedDiscriminationTestCase
 
     public static class Foo extends BaseDocument
     {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 8695624248366669101L;
         private String type, value;
 
         public String getType()
@@ -96,6 +100,11 @@ public class DocumentTypeFieldBasedDiscriminationTestCase
 
     public static class Bar extends Foo
     {
+
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -1173290265285406618L;
 
     }
 }
