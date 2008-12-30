@@ -48,4 +48,9 @@ public class ExceptionWrapper
     {
         return new CouchDBException(e);
     }
+
+    public static CouchDBException wrap(Exception e)
+    {
+        return new CouchDBException(e);
+    }
 }

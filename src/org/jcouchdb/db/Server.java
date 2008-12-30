@@ -2,6 +2,8 @@ package org.jcouchdb.db;
 
 import java.util.List;
 
+import org.apache.commons.httpclient.Credentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.jcouchdb.exception.CouchDBException;
 
 /**
@@ -81,4 +83,18 @@ public interface Server
      */
     Response delete(String uri) throws CouchDBException;
 
+    /**
+     * Sets the credentials for the given authentication scope.
+     *
+     * This method changes the state of the encapsulated commons http client which means
+     * if you use this method, you must ensure that you use a different server instance
+     * per autenticated user.
+     *
+     * @param authScope     authentication scope
+     * @param credentials   credentials
+     *
+     */
+    void setCredentials(AuthScope authScope, Credentials credentials);
+
+    void addServerEventHandler(ServerEventHandler serverEventHandler);
 }
