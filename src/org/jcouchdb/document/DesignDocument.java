@@ -9,6 +9,11 @@ import org.svenson.JSONTypeHint;
 public class DesignDocument
     extends BaseDocument
 {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 2315187506718291465L;
+
     private static final String PREFIX_UNESCAPED = "_design/";
 
     public final static String PREFIX = "_design%2F";
@@ -57,6 +62,11 @@ public class DesignDocument
     public Map<String, View> getViews()
     {
         return views;
+    }
+
+    public View getView(String name)
+    {
+        return views.get(name);
     }
 
     /**
