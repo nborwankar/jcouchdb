@@ -65,11 +65,11 @@ public class Options extends HashMap<String, Object>
         return this;
     }
 
-    public Options key(String key)
+    public Options key(Object key)
     {
         return put("key",key);
     }
-    public Options startKey(String key)
+    public Options startKey(Object key)
     {
         return put("startkey",key);
     }
@@ -79,7 +79,7 @@ public class Options extends HashMap<String, Object>
         return put("startkey_docid", docId);
     }
 
-    public Options endKey(String key)
+    public Options endKey(Object key)
     {
         return put("endkey",key);
     }
