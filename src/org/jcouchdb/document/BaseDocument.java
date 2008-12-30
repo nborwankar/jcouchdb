@@ -1,5 +1,6 @@
 package org.jcouchdb.document;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,8 +15,11 @@ import org.svenson.JSONTypeHint;
  * @author shelmberger
  *
  */
-public class BaseDocument extends AbstractDynamicProperties implements Document
+public class BaseDocument
+    extends AbstractDynamicProperties
+    implements Document, Serializable
 {
+    private static final long serialVersionUID = -2255562502211042022L;
 
     private String id;
     private String revision;

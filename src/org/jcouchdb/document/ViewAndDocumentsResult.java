@@ -7,6 +7,10 @@ import org.svenson.JSONTypeHint;
 
 public class ViewAndDocumentsResult<V,D> extends AbstractViewResult
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5825957642465235667L;
     List<ValueAndDocumentRow<V,D>> rows = new ArrayList<ValueAndDocumentRow<V,D>>();
 
     public List<ValueAndDocumentRow<V,D>> getRows()

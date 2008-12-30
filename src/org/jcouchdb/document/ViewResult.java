@@ -14,6 +14,10 @@ import org.svenson.JSONTypeHint;
  */
 public class ViewResult<V> extends AbstractViewResult<V>
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7445876405961695911L;
     List<ValueRow<V>> rows = new ArrayList<ValueRow<V>>();
 
     public List<ValueRow<V>> getRows()

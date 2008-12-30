@@ -6,6 +6,11 @@ public abstract class AbstractViewResult<V>
     extends BaseDocument
 {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7412381861539478968L;
+
     private int totalRows;
 
     private int offset;
