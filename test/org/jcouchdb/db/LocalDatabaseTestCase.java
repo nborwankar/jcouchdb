@@ -1,7 +1,6 @@
 package org.jcouchdb.db;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -29,7 +28,6 @@ import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
 import org.junit.Test;
-import org.springframework.util.StringUtils;
 import org.svenson.JSON;
 
 /**

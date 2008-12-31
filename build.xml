@@ -55,7 +55,11 @@
 	</target>
 
 	<target name="compile" depends="init">
-		<javac srcdir="${project.sources}" destdir="${project.classes}" source="1.5" target="1.5" debug="true" optimize="true" classpathref="compile.path" />
+		<javac srcdir="${project.sources}" destdir="${project.classes}" 
+			source="1.5" 
+			target="1.5" 
+			debug="true" 
+			optimize="true" classpathref="compile.path" />
 
 		<copy todir="${project.classes}">
 			<fileset dir="${project.sources}">
