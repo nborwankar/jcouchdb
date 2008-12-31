@@ -1,5 +1,6 @@
 package org.jcouchdb.db;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,6 @@ import org.svenson.JSONParser;
  */
 public class Database
 {
-
     private static final String VIEW_DOCUMENT_PREFIX = "_view/";
 
     private JSON jsonGenerator = new JSON();
@@ -48,9 +48,10 @@ public class Database
 
     private Server server;
 
+    private List<DatabaseEventHandler> eventHandlers = new ArrayList<DatabaseEventHandler>();
+
     /**
      * Creates a database object for the given host, the default port and the given data base name.
-     *
      *
      * @param host
      * @param name
@@ -62,6 +63,7 @@ public class Database
 
     /**
      * Create a database object for the given host, port and database name.
+     *
      * @param host
      * @param port
      * @param name
@@ -100,6 +102,22 @@ public class Database
     public Server getServer()
     {
         return server;
+    }
+
+    public List<DatabaseEventHandler> getEventHandlers()
+    {
+        return eventHandlers;
+    }
+
+    public void setEventHandlers(List<DatabaseEventHandler> eventHandlers)
+    {
+        Assert.notNull(eventHandlers, "event handlers can't be null");
+        this.eventHandlers = eventHandlers;
+    }
+
+    public void addEventHandler(DatabaseEventHandler handler)
+    {
+        eventHandlers.add(handler);
     }
 
     /**
@@ -220,8 +238,48 @@ public class Database
         Map<String,List<?>> wrap = new HashMap<String, List<?>>();
         wrap.put("docs", documents);
 
+        for (Object doc : documents)
+        {
+            boolean isCreate = DocumentHelper.getId(doc) == null;
+            for (DatabaseEventHandler eventHandler : eventHandlers)
+            {
+                try
+                {
+                    if (isCreate)
+                    {
+                        eventHandler.creatingDocument(this, doc);
+                    }
+                    else
+                    {
+                        eventHandler.updatingDocument(this, doc);
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    throw new DatabaseEventException(e);
+                }
+            }
+        }
+
         final String json = jsonGenerator.forValue(wrap);
         Response resp = server.post("/" + name + "/_bulk_docs", json);
+
+        for (Object doc : documents)
+        {
+            boolean isCreate = DocumentHelper.getId(doc) == null;
+            for (DatabaseEventHandler eventHandler : eventHandlers)
+            {
+                if (isCreate)
+                {
+                    eventHandler.createdDocument(this, doc, resp);
+                }
+                else
+                {
+                    eventHandler.updatedDocument(this, doc, resp);
+                }
+            }
+        }
 
         JSONParser parser = new JSONParser();
         parser.addTypeHint(".new_revs[]", DocumentInfo.class);
@@ -249,7 +307,25 @@ public class Database
         Assert.notNull(docId, "document id cannot be null");
         Assert.notNull(revision, "revision cannot be null");
 
+        for (DatabaseEventHandler eventHandler : eventHandlers)
+        {
+            try
+            {
+                eventHandler.deletingDocument(this, docId, revision);
+            }
+            catch (Exception e)
+            {
+                throw new DatabaseEventException(e);
+            }
+        }
+
         Response response = server.delete("/" + name + "/" + docId+"?rev=" + revision );
+
+        for (DatabaseEventHandler eventHandler : eventHandlers)
+        {
+            eventHandler.deletedDocument(this, docId, revision, response);
+        }
+
         if (!response.isOk())
         {
             throw new DataAccessException("Error deleting document", response);
@@ -279,14 +355,54 @@ public class Database
     {
         Response resp;
         String id = DocumentHelper.getId(doc);
+        boolean isCreate = id == null;
+
+        for (DatabaseEventHandler eventHandler : eventHandlers)
+        {
+            try
+            {
+                if (isCreate)
+                {
+                    eventHandler.creatingDocument(this, doc);
+                }
+                else
+                {
+                    eventHandler.updatingDocument(this, doc);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new DatabaseEventException(e);
+            }
+        }
+
         final String json = jsonGenerator.forValue(doc);
-        if (id == null)
+        if (isCreate)
         {
             resp = server.post("/" + name + "/", json);
         }
         else
         {
             resp = server.put("/" + name + "/" + id, json);
+        }
+
+        for (DatabaseEventHandler eventHandler : eventHandlers)
+        {
+            try
+            {
+                if (isCreate)
+                {
+                    eventHandler.createdDocument(this, doc, resp);
+                }
+                else
+                {
+                    eventHandler.updatedDocument(this, doc, resp);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new DatabaseEventException(e);
+            }
         }
 
         if (resp.getCode() == 412)
@@ -299,7 +415,7 @@ public class Database
         }
         DocumentInfo info = resp.getContentAsBean(DocumentInfo.class);
 
-        if (id == null)
+        if (isCreate)
         {
             DocumentHelper.setId(doc, info.getId());
         }
@@ -430,13 +546,13 @@ public class Database
     /**
      * Internal view query method.
      *
-     * @param <V>       type to parse the response into
-     * @param viewName  view name
-     * @param valueClass       runtime type
-     * @param documentClass TODO
-     * @param options   query options
-     * @param parser    parser to parse the response with
-     * @param keys      keys to query, if this is not <code>null</code>, a POST request with the keys as JSON will be done.
+     * @param <V>               type to parse the response into
+     * @param viewName          view name
+     * @param valueClass        runtime value type
+     * @param documentClass     runtime document type
+     * @param options           query options
+     * @param parser            parser to parse the response with
+     * @param keys              keys to query, if this is not <code>null</code>, a POST request with the keys as JSON will be done.
      * @return
      */
     private <V> AbstractViewResult<V> queryViewInternal(String viewName, Class<V> valueClass, Class documentClass, Options options, JSONParser parser, Object keys)
