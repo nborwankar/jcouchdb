@@ -1,7 +1,6 @@
 package org.jcouchdb.db;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.httpclient.Credentials;
@@ -32,8 +31,6 @@ public class ServerImpl implements Server
     private HostConfiguration hostConfiguration;
 
     private HttpClient httpClient = new HttpClient();
-
-    private List<ServerEventHandler> serverEventHandlers;
 
     public ServerImpl(String host)
     {
@@ -106,12 +103,10 @@ public class ServerImpl implements Server
             {
                 log.debug("GET "+uri);
             }
-            fireBeforeEvent("get", uri, null);
 
             GetMethod method = new GetMethod(uri);
             int code = httpClient.executeMethod(method);
             Response response = new Response(code, method.getResponseBody());
-            fireAfterEvent("get", uri, null, response);
             return response;
         }
         catch (HttpException e)
@@ -148,7 +143,6 @@ public class ServerImpl implements Server
             {
                 log.debug("PUT "+uri+", body = "+body);
             }
-            fireBeforeEvent("put", uri, body);
             PutMethod putMethod = new PutMethod(uri);
             if (body != null)
             {
@@ -156,7 +150,6 @@ public class ServerImpl implements Server
             }
             int code = httpClient.executeMethod(putMethod);
             Response response = new Response(code, putMethod.getResponseBody());
-            fireAfterEvent("put", uri, body, response);
             return response;
         }
         catch (HttpException e)
@@ -185,8 +178,6 @@ public class ServerImpl implements Server
                 log.debug("PUT "+uri+", body = "+body);
             }
 
-            fireBeforeEvent("put", uri, body);
-
             PutMethod putMethod = new PutMethod(uri);
             if (body != null)
             {
@@ -194,8 +185,6 @@ public class ServerImpl implements Server
             }
             int code = httpClient.executeMethod(putMethod);
             Response response = new Response(code, putMethod.getResponseBody());
-
-            fireAfterEvent("put", uri, body, response);
 
             return response;
         }
@@ -225,14 +214,10 @@ public class ServerImpl implements Server
                 log.debug("POST "+uri+", body = "+body);
             }
 
-            fireBeforeEvent("post", uri, body);
-
             PostMethod postMethod = new PostMethod(uri);
             postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
             int code = httpClient.executeMethod(postMethod);
             Response response = new Response(code, postMethod.getResponseBody());
-
-            fireAfterEvent("post", uri, body, response);
 
             return response;
         }
@@ -262,13 +247,9 @@ public class ServerImpl implements Server
                 log.debug("DELETE "+uri);
             }
 
-            fireBeforeEvent("delete", uri, null);
-
             DeleteMethod deleteMethod = new DeleteMethod(uri);
             int code = httpClient.executeMethod(deleteMethod);
             Response response = new Response(code, deleteMethod.getResponseBody());
-
-            fireAfterEvent("delete", uri, null, response);
 
             return response;
         }
@@ -292,43 +273,5 @@ public class ServerImpl implements Server
     public void setCredentials(AuthScope authScope, Credentials credentials)
     {
         httpClient.getState().setCredentials(authScope, credentials);
-    }
-
-    public void addServerEventHandler(ServerEventHandler serverEventHandler)
-    {
-        if (serverEventHandlers == null)
-        {
-            serverEventHandlers = new ArrayList<ServerEventHandler>();
-        }
-        serverEventHandlers.add(serverEventHandler);
-    }
-
-    private void fireBeforeEvent(String method, String uri, Object data) throws Exception
-    {
-        if (serverEventHandlers != null)
-        {
-            for (ServerEventHandler handler : serverEventHandlers)
-            {
-                handler.executing(method, uri, data);
-            }
-        }
-    }
-
-    private void fireAfterEvent(String method, String uri, Object data, Response response)
-    {
-        if (serverEventHandlers != null)
-        {
-            for (ServerEventHandler handler : serverEventHandlers)
-            {
-                try
-                {
-                    handler.executed(method, uri, data, response);
-                }
-                catch(Exception e)
-                {
-                    log.error("ignorin error in server event handler method",e);
-                }
-            }
-        }
     }
 }
