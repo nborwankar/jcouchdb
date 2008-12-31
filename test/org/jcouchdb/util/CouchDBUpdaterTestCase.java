@@ -33,8 +33,8 @@ public class CouchDBUpdaterTestCase
 
         assertThat(docs,is(notNullValue()));
         assertThat(docs.size(), is(2));
-        assertThat(docs.get(0).getId(),is("_design/view1"));
-        assertThat(docs.get(1).getId(),is("_design/view2/sub"));
+        assertThat(docs.get(0).getId(),is("_design%2Fview1"));
+        assertThat(docs.get(1).getId(),is("_design%2Fview2/sub"));
 
 
     }
