@@ -96,5 +96,4 @@ public interface Server
      */
     void setCredentials(AuthScope authScope, Credentials credentials);
 
-    void addServerEventHandler(ServerEventHandler serverEventHandler);
 }
