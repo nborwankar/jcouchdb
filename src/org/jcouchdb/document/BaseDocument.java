@@ -17,10 +17,8 @@ import org.svenson.JSONTypeHint;
  */
 public class BaseDocument
     extends AbstractDynamicProperties
-    implements Document, Serializable
+    implements Document
 {
-    private static final long serialVersionUID = -2255562502211042022L;
-
     private String id;
     private String revision;
     private Map<String, Attachment> attachments;
