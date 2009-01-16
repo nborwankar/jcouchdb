@@ -6,7 +6,10 @@ import java.util.List;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.NoHttpResponseException;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.DeleteMethod;
@@ -14,8 +17,11 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.log4j.Logger;
 import org.jcouchdb.exception.CouchDBException;
+import org.jcouchdb.exception.DataAccessException;
+import org.jcouchdb.exception.NoResponseException;
 import org.jcouchdb.util.ExceptionWrapper;
 
 /**
@@ -42,6 +48,7 @@ public class ServerImpl implements Server
         this.hostConfiguration = new HostConfiguration();
         this.hostConfiguration.setHost(host, port);
         httpClient.setHostConfiguration(hostConfiguration);
+        httpClient.setHttpConnectionManager(new MultiThreadedHttpConnectionManager());
     }
 
     /**
@@ -109,6 +116,10 @@ public class ServerImpl implements Server
             Response response = new Response(code, method.getResponseBody());
             return response;
         }
+        catch(NoHttpResponseException e)
+        {
+            throw new NoResponseException();
+        }
         catch (HttpException e)
         {
             throw ExceptionWrapper.wrap(e);
@@ -152,6 +163,10 @@ public class ServerImpl implements Server
             Response response = new Response(code, putMethod.getResponseBody());
             return response;
         }
+        catch(NoHttpResponseException e)
+        {
+            throw new NoResponseException();
+        }
         catch (HttpException e)
         {
             throw ExceptionWrapper.wrap(e);
@@ -188,6 +203,10 @@ public class ServerImpl implements Server
 
             return response;
         }
+        catch(NoHttpResponseException e)
+        {
+            throw new NoResponseException();
+        }
         catch (HttpException e)
         {
             throw ExceptionWrapper.wrap(e);
@@ -221,6 +240,10 @@ public class ServerImpl implements Server
 
             return response;
         }
+        catch(NoHttpResponseException e)
+        {
+            throw new NoResponseException();
+        }
         catch (HttpException e)
         {
             throw ExceptionWrapper.wrap(e);
@@ -252,6 +275,10 @@ public class ServerImpl implements Server
             Response response = new Response(code, deleteMethod.getResponseBody());
 
             return response;
+        }
+        catch(NoHttpResponseException e)
+        {
+            throw new NoResponseException();
         }
         catch (HttpException e)
         {

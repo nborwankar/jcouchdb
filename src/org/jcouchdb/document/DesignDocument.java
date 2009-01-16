@@ -14,9 +14,7 @@ public class DesignDocument
      */
     private static final long serialVersionUID = 2315187506718291465L;
 
-    private static final String PREFIX_UNESCAPED = "_design/";
-
-    public final static String PREFIX = "_design%2F";
+    public final static String PREFIX = "_design/";
 
     private String language = "javascript";
 
@@ -99,11 +97,12 @@ public class DesignDocument
     {
         if (id != null)
         {
-            if (id.startsWith(PREFIX_UNESCAPED))
-            {
-                id = PREFIX + id.substring(PREFIX_UNESCAPED.length());
-            }
-            else if (!id.startsWith(PREFIX))
+//            if (id.startsWith(PREFIX_UNESCAPED))
+//            {
+//                id = PREFIX + id.substring(PREFIX_UNESCAPED.length());
+//            }
+//            else
+            if (!id.startsWith(PREFIX))
             {
                 id = PREFIX + id;
             }

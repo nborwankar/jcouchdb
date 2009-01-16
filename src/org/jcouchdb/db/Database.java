@@ -407,11 +407,11 @@ public class Database
 
         if (resp.getCode() == 412)
         {
-            throw new UpdateConflictException("error creating document "+json, resp);
+            throw new UpdateConflictException("error creating document "+json + "in database '" + name + "'", resp);
         }
         else if (!resp.isOk())
         {
-            throw new DataAccessException("error creating document " + json, resp);
+            throw new DataAccessException("error creating document " + json + "in database '" + name + "'", resp);
         }
         DocumentInfo info = resp.getContentAsBean(DocumentInfo.class);
 
@@ -516,7 +516,7 @@ public class Database
             throw new IllegalArgumentException("class cannot be null");
         }
 
-        String uri = "/"+name+"/_temp_view";
+        String uri = "/"+name+"/_slow_view";
 
         if (options != null)
         {
