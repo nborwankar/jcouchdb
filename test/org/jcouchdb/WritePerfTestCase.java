@@ -9,6 +9,7 @@ import org.junit.Test;
 public class WritePerfTestCase
 {
     @Test
+    @Ignore
     public void test()
     {
         BaseDocument doc = new BaseDocument();

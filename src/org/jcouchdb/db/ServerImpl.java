@@ -113,7 +113,7 @@ public class ServerImpl implements Server
 
             GetMethod method = new GetMethod(uri);
             int code = httpClient.executeMethod(method);
-            Response response = new Response(code, method.getResponseBody());
+            Response response = new Response(code, method.getResponseBody(),method.getResponseHeaders());
             return response;
         }
         catch(NoHttpResponseException e)
@@ -160,7 +160,7 @@ public class ServerImpl implements Server
                 putMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
             }
             int code = httpClient.executeMethod(putMethod);
-            Response response = new Response(code, putMethod.getResponseBody());
+            Response response = new Response(code, putMethod.getResponseBody(), putMethod.getResponseHeaders());
             return response;
         }
         catch(NoHttpResponseException e)
@@ -199,7 +199,7 @@ public class ServerImpl implements Server
                 putMethod.setRequestEntity(new ByteArrayRequestEntity(body, contentType));
             }
             int code = httpClient.executeMethod(putMethod);
-            Response response = new Response(code, putMethod.getResponseBody());
+            Response response = new Response(code, putMethod.getResponseBody(), putMethod.getResponseHeaders());
 
             return response;
         }
@@ -236,7 +236,7 @@ public class ServerImpl implements Server
             PostMethod postMethod = new PostMethod(uri);
             postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
             int code = httpClient.executeMethod(postMethod);
-            Response response = new Response(code, postMethod.getResponseBody());
+            Response response = new Response(code, postMethod.getResponseBody(), postMethod.getResponseHeaders());
 
             return response;
         }
@@ -272,7 +272,7 @@ public class ServerImpl implements Server
 
             DeleteMethod deleteMethod = new DeleteMethod(uri);
             int code = httpClient.executeMethod(deleteMethod);
-            Response response = new Response(code, deleteMethod.getResponseBody());
+            Response response = new Response(code, deleteMethod.getResponseBody(), deleteMethod.getResponseHeaders());
 
             return response;
         }

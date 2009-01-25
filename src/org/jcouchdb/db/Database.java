@@ -170,7 +170,7 @@ public class Database
      */
     public <D> D getDocument(Class<D> cls, String docId)
     {
-        return getDocument(cls,docId,null);
+        return getDocument(cls,docId,null,null);
     }
 
     /**
@@ -180,15 +180,21 @@ public class Database
      * @param <D>       type
      * @param cls       runtime class info
      * @param docId     document id
+     * @param revision  revision of the document to get
      * @param parser    configured parser
      * @return
      */
-    public <D> D getDocument(Class<D> cls, String docId, JSONParser parser)
+    public <D> D getDocument(Class<D> cls, String docId, String revision, JSONParser parser)
     {
         Assert.notNull(cls, "class cannot be null");
         Assert.notNull(docId, "document id cannot be null");
 
-        Response resp = server.get("/" + name + "/" + docId);
+        String uri = "/" + name + "/" + docId;
+        if (revision != null)
+        {
+            uri += "?rev="+revision;
+        }
+        Response resp = server.get(uri);
         if (resp.getCode() == 404)
         {
             throw new NotFoundException("document not found", resp);
@@ -541,6 +547,32 @@ public class Database
         parser.addTypeHint(VIEW_QUERY_VALUE_TYPEHINT, cls);
         resp.setParser(parser);
         return resp.getContentAsBean(ViewResult.class);
+    }
+
+    /**
+     * Queries a View by URI.
+     *
+     * @param <V>           value type
+     * @param uri           uri to query (e.g. "_all_docs" or "_view/foo/bar")
+     * @param valueClass    value runtime type
+     * @param options       options or <code>null</code>
+     * @param parser        JSON parser or <code>null</code>
+     * @param keys          keys or <code>null</code>
+     * @return
+     */
+    public <V> ViewResult<V> query(String uri, Class<V> valueClass, Options options, JSONParser parser, Object keys)
+    {
+        Assert.notNull(uri, "URI can't be null");
+        Assert.notNull(valueClass, "value class can't be null");
+        return (ViewResult<V>)queryViewInternal( uri, valueClass, null, options, parser, keys);
+    }
+
+    public <V,D> ViewAndDocumentsResult<V,D> query(String uri, Class<V> valueClass, Class<D> documentClass, Options options, JSONParser parser, Object keys)
+    {
+        Assert.notNull(uri, "URI can't be null");
+        Assert.notNull(valueClass, "value class can't be null");
+        Assert.notNull(documentClass, "document class can't be null");
+        return (ViewAndDocumentsResult<V,D>)queryViewInternal( uri, valueClass, documentClass, options, parser, keys);
     }
 
     /**

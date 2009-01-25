@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.httpclient.Header;
 import org.apache.log4j.Logger;
 import org.jcouchdb.document.InstanceCachable;
 import org.svenson.JSONParser;
@@ -28,10 +29,23 @@ public class Response
 
     private String stringContent;
 
+    private Header[] headers;
+
     public Response(int code, byte[] content)
+    {
+        this(code,content,null);
+    }
+
+    public Response(int code, String content)
+    {
+        this(code,content,null);
+    }
+
+    public Response(int code, byte[] content, Header[] headers)
     {
         this.code = code;
         this.content = content;
+        this.headers = headers;
 
         if (log.isDebugEnabled())
         {
@@ -39,11 +53,12 @@ public class Response
         }
     }
 
-    public Response(int code, String content)
+    public Response(int code, String content, Header[] headers)
     {
         this.code = code;
         this.content = null;
         this.stringContent = content;
+        this.headers = headers;
 
         if (log.isDebugEnabled())
         {
@@ -134,6 +149,11 @@ public class Response
             }
         }
         return cached;
+    }
+
+    public Header[] getResponseHeaders()
+    {
+        return headers;
     }
 
     /**

@@ -15,9 +15,9 @@ public class Assert
         }
     }
 
-    public static void isTrue(Object o, String msg)
+    public static void isTrue(boolean value, String msg)
     {
-        if ( o == null)
+        if (!value)
         {
             throw new IllegalArgumentException(msg);
         }

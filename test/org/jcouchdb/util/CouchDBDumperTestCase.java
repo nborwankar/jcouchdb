@@ -1,0 +1,46 @@
+package org.jcouchdb.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.ZipInputStream;
+
+import org.jcouchdb.db.Server;
+import org.jcouchdb.db.ServerImpl;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+
+public class CouchDBDumperTestCase
+{
+    private static File file;
+    private static Server server;
+
+    @BeforeClass
+    public static void init() throws IOException
+    {
+        file = File.createTempFile("jcouchdb_dump", ".zip");
+        server = new ServerImpl("localhost");
+
+        if (server.listDatabases().contains("ffwde_copy"))
+        {
+            server.deleteDatabase("ffwde_copy");
+        }
+    }
+
+    @Test
+    public void test() throws IOException
+    {
+        CouchDBDumper dumper = new CouchDBDumper();
+        dumper.dumpDatabase(server, "markapp_fforw_de", new FileOutputStream(file ), true);
+    }
+
+    @Test
+    public void testLoad() throws FileNotFoundException, IOException
+    {
+        new CouchDBLoader().load(new ZipInputStream(new FileInputStream(file)), server, "ffwde_copy");
+    }
+
+}
