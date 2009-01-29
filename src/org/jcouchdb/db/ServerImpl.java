@@ -6,7 +6,6 @@ import java.util.List;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.NoHttpResponseException;
@@ -17,20 +16,18 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.log4j.Logger;
 import org.jcouchdb.exception.CouchDBException;
-import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NoResponseException;
 import org.jcouchdb.util.ExceptionWrapper;
 
 /**
  * Default implementation of the {@link Server} interface.
- *
+ * 
  * @author shelmberger
- *
  */
-public class ServerImpl implements Server
+public class ServerImpl
+    implements Server
 {
     protected static Logger log = Logger.getLogger(ServerImpl.class);
 
@@ -59,7 +56,7 @@ public class ServerImpl implements Server
         Response resp = get("/_all_dbs");
         if (!resp.isOk())
         {
-            throw new CouchDBException("Error listing databases: "+resp);
+            throw new CouchDBException("Error listing databases: " + resp);
         }
         return resp.getContentAsList();
     }
@@ -69,7 +66,7 @@ public class ServerImpl implements Server
      */
     public boolean createDatabase(String name)
     {
-        Response resp = put("/"+name+"/");
+        Response resp = put("/" + name + "/");
         if (resp.isOk())
         {
             return true;
@@ -82,7 +79,7 @@ public class ServerImpl implements Server
             }
             else
             {
-                throw new CouchDBException("Error creating database: "+resp);
+                throw new CouchDBException("Error creating database: " + resp);
             }
         }
     }
@@ -92,10 +89,10 @@ public class ServerImpl implements Server
      */
     public void deleteDatabase(String name)
     {
-        Response resp = delete("/"+name+"/");
+        Response resp = delete("/" + name + "/");
         if (!resp.isOk())
         {
-            throw new CouchDBException("Cannot delete database "+name+": "+resp);
+            throw new CouchDBException("Cannot delete database " + name + ": " + resp);
         }
     }
 
@@ -104,19 +101,21 @@ public class ServerImpl implements Server
      */
     public Response get(String uri)
     {
+        if (log.isDebugEnabled())
+        {
+            log.debug("GET " + uri);
+        }
+
+        GetMethod method = new GetMethod(uri);
+
         try
         {
-            if (log.isDebugEnabled())
-            {
-                log.debug("GET "+uri);
-            }
-
-            GetMethod method = new GetMethod(uri);
             int code = httpClient.executeMethod(method);
-            Response response = new Response(code, method.getResponseBody(),method.getResponseHeaders());
+            Response response = new Response(code, method.getResponseBody(), method
+                .getResponseHeaders());
             return response;
         }
-        catch(NoHttpResponseException e)
+        catch (NoHttpResponseException e)
         {
             throw new NoResponseException();
         }
@@ -132,7 +131,10 @@ public class ServerImpl implements Server
         {
             throw ExceptionWrapper.wrap(e);
         }
-
+        finally
+        {
+            method.releaseConnection();
+        }
     }
 
     /**
@@ -140,7 +142,7 @@ public class ServerImpl implements Server
      */
     public Response put(String uri)
     {
-        return put(uri,null);
+        return put(uri, null);
     }
 
     /**
@@ -148,22 +150,25 @@ public class ServerImpl implements Server
      */
     public Response put(String uri, String body)
     {
+        if (log.isDebugEnabled())
+        {
+            log.debug("PUT " + uri + ", body = " + body);
+        }
+        PutMethod putMethod = new PutMethod(uri);
+
         try
         {
-            if (log.isDebugEnabled())
-            {
-                log.debug("PUT "+uri+", body = "+body);
-            }
-            PutMethod putMethod = new PutMethod(uri);
             if (body != null)
             {
-                putMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
+                putMethod.setRequestEntity(new StringRequestEntity(body, "application/json",
+                    "UTF-8"));
             }
             int code = httpClient.executeMethod(putMethod);
-            Response response = new Response(code, putMethod.getResponseBody(), putMethod.getResponseHeaders());
+            Response response = new Response(code, putMethod.getResponseBody(), putMethod
+                .getResponseHeaders());
             return response;
         }
-        catch(NoHttpResponseException e)
+        catch (NoHttpResponseException e)
         {
             throw new NoResponseException();
         }
@@ -178,6 +183,10 @@ public class ServerImpl implements Server
         catch (Exception e)
         {
             throw ExceptionWrapper.wrap(e);
+        }
+        finally
+        {
+            putMethod.releaseConnection();
         }
     }
 
@@ -186,24 +195,26 @@ public class ServerImpl implements Server
      */
     public Response put(String uri, byte[] body, String contentType)
     {
+        if (log.isDebugEnabled())
+        {
+            log.debug("PUT " + uri + ", body = " + body);
+        }
+
+        PutMethod putMethod = new PutMethod(uri);
+        if (body != null)
+        {
+            putMethod.setRequestEntity(new ByteArrayRequestEntity(body, contentType));
+        }
+
         try
         {
-            if (log.isDebugEnabled())
-            {
-                log.debug("PUT "+uri+", body = "+body);
-            }
-
-            PutMethod putMethod = new PutMethod(uri);
-            if (body != null)
-            {
-                putMethod.setRequestEntity(new ByteArrayRequestEntity(body, contentType));
-            }
             int code = httpClient.executeMethod(putMethod);
-            Response response = new Response(code, putMethod.getResponseBody(), putMethod.getResponseHeaders());
+            Response response = new Response(code, putMethod.getResponseBody(), putMethod
+                .getResponseHeaders());
 
             return response;
         }
-        catch(NoHttpResponseException e)
+        catch (NoHttpResponseException e)
         {
             throw new NoResponseException();
         }
@@ -218,6 +229,10 @@ public class ServerImpl implements Server
         catch (Exception e)
         {
             throw ExceptionWrapper.wrap(e);
+        }
+        finally
+        {
+            putMethod.releaseConnection();
         }
     }
 
@@ -226,21 +241,23 @@ public class ServerImpl implements Server
      */
     public Response post(String uri, String body)
     {
+        if (log.isDebugEnabled())
+        {
+            log.debug("POST " + uri + ", body = " + body);
+        }
+
+        PostMethod postMethod = new PostMethod(uri);
+
         try
         {
-            if (log.isDebugEnabled())
-            {
-                log.debug("POST "+uri+", body = "+body);
-            }
-
-            PostMethod postMethod = new PostMethod(uri);
             postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
             int code = httpClient.executeMethod(postMethod);
-            Response response = new Response(code, postMethod.getResponseBody(), postMethod.getResponseHeaders());
+            Response response = new Response(code, postMethod.getResponseBody(), postMethod
+                .getResponseHeaders());
 
             return response;
         }
-        catch(NoHttpResponseException e)
+        catch (NoHttpResponseException e)
         {
             throw new NoResponseException();
         }
@@ -255,6 +272,10 @@ public class ServerImpl implements Server
         catch (Exception e)
         {
             throw ExceptionWrapper.wrap(e);
+        }
+        finally
+        {
+            postMethod.releaseConnection();
         }
     }
 
@@ -263,20 +284,22 @@ public class ServerImpl implements Server
      */
     public Response delete(String uri)
     {
+        if (log.isDebugEnabled())
+        {
+            log.debug("DELETE " + uri);
+        }
+
+        DeleteMethod deleteMethod = new DeleteMethod(uri);
+
         try
         {
-            if (log.isDebugEnabled())
-            {
-                log.debug("DELETE "+uri);
-            }
-
-            DeleteMethod deleteMethod = new DeleteMethod(uri);
             int code = httpClient.executeMethod(deleteMethod);
-            Response response = new Response(code, deleteMethod.getResponseBody(), deleteMethod.getResponseHeaders());
+            Response response = new Response(code, deleteMethod.getResponseBody(), deleteMethod
+                .getResponseHeaders());
 
             return response;
         }
-        catch(NoHttpResponseException e)
+        catch (NoHttpResponseException e)
         {
             throw new NoResponseException();
         }
@@ -291,6 +314,10 @@ public class ServerImpl implements Server
         catch (Exception e)
         {
             throw ExceptionWrapper.wrap(e);
+        }
+        finally
+        {
+            deleteMethod.releaseConnection();
         }
     }
 
