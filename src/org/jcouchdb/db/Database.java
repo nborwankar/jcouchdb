@@ -411,7 +411,7 @@ public class Database
             }
         }
 
-        if (resp.getCode() == 412)
+        if (resp.getCode() == 409)
         {
             throw new UpdateConflictException("error creating document "+json + "in database '" + name + "'", resp);
         }
@@ -522,7 +522,7 @@ public class Database
             throw new IllegalArgumentException("class cannot be null");
         }
 
-        String uri = "/"+name+"/_slow_view";
+        String uri = "/"+name+"/_temp_view";
 
         if (options != null)
         {

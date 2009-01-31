@@ -73,7 +73,7 @@ public class ServerImpl
         }
         else
         {
-            if (resp.getCode() == 409 || resp.getCode() == 500)
+            if (resp.getCode() == 412 || resp.getCode() == 500)
             {
                 return false;
             }
@@ -250,7 +250,7 @@ public class ServerImpl
 
         try
         {
-            postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
+            postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "ISO-8859-1"));
             int code = httpClient.executeMethod(postMethod);
             Response response = new Response(code, postMethod.getResponseBody(), postMethod
                 .getResponseHeaders());
