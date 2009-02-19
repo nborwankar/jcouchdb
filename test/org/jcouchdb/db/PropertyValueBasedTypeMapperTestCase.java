@@ -22,9 +22,9 @@ import org.svenson.JSONParser;
 import org.svenson.PropertyValueBasedTypeMapper;
 
 
-public class DocumentTypeFieldBasedDiscriminationTestCase
+public class PropertyValueBasedTypeMapperTestCase
 {
-    protected static Logger log = Logger.getLogger(DocumentTypeFieldBasedDiscriminationTestCase.class);
+    protected static Logger log = Logger.getLogger(PropertyValueBasedTypeMapperTestCase.class);
 
     @Test
     public void thatItWorks() throws IOException
