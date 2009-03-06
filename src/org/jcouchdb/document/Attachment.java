@@ -4,8 +4,14 @@ import org.jcouchdb.util.Base64Util;
 import org.svenson.JSONProperty;
 
 /**
- * Wraps an attachment.
+ * Represents a couchdb document attachment.
+ * The attachment mechanism mirrors the functionality present in couchdb itself.
+ * You will only be able to indirectly use the data property contained in {@link Attachment} to create
+ * attachments inlined with the document. When you query a document with attachments, the attachments will
+ * have a <code>null</code> data property and the stub property will be set to <code>true</code>.
  *
+ * This limitation has its origin in the way couchdb works and is deliberately kept that way to not introduce additional queries.
+ * 
  * @author shelmberger
  *
  */
@@ -27,17 +33,32 @@ public class Attachment
     }
 
 
+    /**
+     * Returns the media type of this attachment.
+     * @return media type 
+     */
     @JSONProperty("content_type")
     public String getContentType()
     {
         return contentType;
     }
 
+    /**
+     * Sets the media type for this attachment.
+     * @return media type 
+     */
     public void setContentType(String contentType)
     {
         this.contentType = contentType;
     }
 
+    /**
+     * Returns the Base64 encoded representation of this attachment's content. <em>note that you cannot read attachment data this way</em>. the property is 
+     * only used internally to create inlined attachments and is set to <code>null</code> when reading documents.
+     * 
+     * This limitation has its origin in the way couchdb works and is deliberately kept that way to not introduce additional queries.
+     * @return
+     */
     public String getData()
     {
         return data;
@@ -48,16 +69,28 @@ public class Attachment
         this.data = data;
     }
 
+    /**
+     * Returns the length of the attachment in bytes.
+     * @return
+     */
     public long getLength()
     {
         return length;
     }
 
+    /**
+     * Sets the length of the attachments in bytes
+     * @param length
+     */
     public void setLength(long length)
     {
         this.length = length;
     }
 
+    /**
+     * This is set to <code>true</code> by couchdb to signal that the attachment instance is just a stub without any data.
+     * @return
+     */
     public boolean isStub()
     {
         return stub;
