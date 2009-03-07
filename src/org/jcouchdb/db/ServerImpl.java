@@ -29,6 +29,8 @@ import org.jcouchdb.util.ExceptionWrapper;
 public class ServerImpl
     implements Server
 {
+    private static final String CHARSET = "UTF-8";
+
     protected static Logger log = Logger.getLogger(ServerImpl.class);
 
     private HostConfiguration hostConfiguration;
@@ -161,7 +163,7 @@ public class ServerImpl
             if (body != null)
             {
                 putMethod.setRequestEntity(new StringRequestEntity(body, "application/json",
-                    "UTF-8"));
+                    CHARSET));
             }
             int code = httpClient.executeMethod(putMethod);
             Response response = new Response(code, putMethod.getResponseBody(), putMethod
@@ -250,7 +252,7 @@ public class ServerImpl
 
         try
         {
-            postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "ISO-8859-1"));
+            postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", CHARSET));
             int code = httpClient.executeMethod(postMethod);
             Response response = new Response(code, postMethod.getResponseBody(), postMethod
                 .getResponseHeaders());
