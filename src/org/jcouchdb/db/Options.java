@@ -85,9 +85,9 @@ public class Options extends HashMap<String, Object>
         return put("endkey",key);
     }
 
-    public Options count(int count)
+    public Options limit(int limit)
     {
-        return put("count", count);
+        return put("limit", limit);
     }
 
     public Options update(boolean update)
