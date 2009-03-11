@@ -27,7 +27,8 @@ import org.svenson.JSONParser;
  */
 public class Database
 {
-    private static final String VIEW_DOCUMENT_PREFIX = "_view/";
+    private static final String VIEW_DOCUMENT_PREFIX = "_design/";
+    private static final String VIEW_DOCUMENT_INFIX = "/_view/";
 
     private JSON jsonGenerator = new JSON();
 
@@ -484,7 +485,17 @@ public class Database
      */
     public <V> ViewResult<V> queryView(String viewName, Class<V> cls, Options options, JSONParser parser)
     {
-        return (ViewResult<V>)queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, cls, null, options, parser, null);
+        return (ViewResult<V>)queryViewInternal(viewURIFromName(viewName), cls, null, options, parser, null);
+    }
+
+    private String viewURIFromName(String viewName)
+    {
+        int slashPos = viewName.indexOf("/");
+        if (slashPos < 0)
+        {
+            throw new IllegalArgumentException("viewName must contain a slash separating the design doc name from the view name");
+        }
+        return VIEW_DOCUMENT_PREFIX + viewName.substring(0,slashPos) + VIEW_DOCUMENT_INFIX + viewName.substring(slashPos + 1);
     }
 
 
@@ -503,7 +514,7 @@ public class Database
      */
     public <V,D> ViewAndDocumentsResult<V,D> queryViewAndDocuments(String viewName, Class<V> valueClass, Class<D> documentClass, Options options, JSONParser parser)
     {
-        return (ViewAndDocumentsResult<V,D>)queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, valueClass, documentClass, options, parser, null);
+        return (ViewAndDocumentsResult<V,D>)queryViewInternal(viewURIFromName(viewName), valueClass, documentClass, options, parser, null);
     }
 
     /**
@@ -669,7 +680,7 @@ public class Database
     {
         Map<String, Object> m = new HashMap<String, Object>();
         m.put("keys", keys);
-        return (ViewResult<V>)queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, cls, null, options, parser, m);
+        return (ViewResult<V>)queryViewInternal(viewURIFromName(viewName), cls, null, options, parser, m);
     }
 
     /**
@@ -687,7 +698,7 @@ public class Database
     {
         Map<String, Object> m = new HashMap<String, Object>();
         m.put("keys", keys);
-        return (ViewAndDocumentsResult<V,D>)queryViewInternal(VIEW_DOCUMENT_PREFIX + viewName, valueClass, documentClass, options, parser, m);
+        return (ViewAndDocumentsResult<V,D>)queryViewInternal(viewURIFromName(viewName), valueClass, documentClass, options, parser, m);
     }
 
     /**
