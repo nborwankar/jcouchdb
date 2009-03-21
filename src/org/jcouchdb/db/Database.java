@@ -289,13 +289,13 @@ public class Database
         }
 
         JSONParser parser = new JSONParser();
-        parser.addTypeHint(".new_revs[]", DocumentInfo.class);
+        parser.addTypeHint("[]", DocumentInfo.class);
         resp.setParser(parser);
-        Map m = resp.getContentAsBean(HashMap.class);
+        List<DocumentInfo> infos = resp.getContentAsBean(ArrayList.class);
 
-        if (m.get("ok") != null)
+        if (infos != null)
         {
-            return (List<DocumentInfo>) m.get("new_revs");
+            return infos;
         }
         else
         {

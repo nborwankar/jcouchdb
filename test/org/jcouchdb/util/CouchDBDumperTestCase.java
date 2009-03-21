@@ -10,6 +10,7 @@ import java.util.zip.ZipInputStream;
 import org.jcouchdb.db.Server;
 import org.jcouchdb.db.ServerImpl;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -31,6 +32,7 @@ public class CouchDBDumperTestCase
     }
 
     @Test
+    @Ignore
     public void test() throws IOException
     {
         CouchDBDumper dumper = new CouchDBDumper();
@@ -38,6 +40,7 @@ public class CouchDBDumperTestCase
     }
 
     @Test
+    @Ignore
     public void testLoad() throws FileNotFoundException, IOException
     {
         new CouchDBLoader().load(new ZipInputStream(new FileInputStream(file)), server, "ffwde_copy");
