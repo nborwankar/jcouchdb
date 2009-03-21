@@ -161,7 +161,6 @@ public class LocalDatabaseTestCase
 
     
     @Test(expected = UpdateConflictException.class)
-    @Ignore
     public void thatUpdateConflictWorks()
     {
         FooDocument doc = new FooDocument("qux");
@@ -289,7 +288,6 @@ public class LocalDatabaseTestCase
     }
 
     @Test
-    //@Ignore
     public void thatGetDocumentWorks()
     {
         Database db = createDatabaseForTest();
@@ -303,7 +301,6 @@ public class LocalDatabaseTestCase
     }
 
     @Test
-    //@Ignore
     public void thatAdHocViewsWork()
     {
         Database db = createDatabaseForTest();
