@@ -47,9 +47,9 @@ public class Response
         this.content = content;
         this.headers = headers;
 
-        if (log.isDebugEnabled())
+        if (log.isTraceEnabled())
         {
-            log.debug(this);
+            log.trace(this);
         }
     }
 
@@ -60,9 +60,9 @@ public class Response
         this.stringContent = content;
         this.headers = headers;
 
-        if (log.isDebugEnabled())
+        if (log.isTraceEnabled())
         {
-            log.debug(this);
+            log.trace(this);
         }
     }
 
