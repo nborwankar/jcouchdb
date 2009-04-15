@@ -12,11 +12,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.util.Assert;
-import org.jcouchdb.util.ExceptionWrapper;
 import org.svenson.JSONParser;
 import org.svenson.tokenize.InputStreamSource;
-
-import com.sun.org.apache.bcel.internal.ExceptionConstants;
 
 /**
  * Encapsulates a couchdb server response with error code and received
@@ -38,6 +35,8 @@ public class Response
     private InputStream inputStream;
 
     private HttpMethodBase method;
+
+    private InputStreamSource inputStreamSource;
 
     public Response(int code, String s)
     {
@@ -116,7 +115,7 @@ public class Response
      */
     public List getContentAsList()
     {
-        List list = getParser().parse(List.class, new InputStreamSource(inputStream, false));
+        List list = getParser().parse(List.class, getCharacterSource());
         return list;
     }
 
@@ -126,7 +125,7 @@ public class Response
      */
     public Map getContentAsMap()
     {
-        Map map = getParser().parse(Map.class, new InputStreamSource(inputStream, false));
+        Map map = getParser().parse(Map.class, getCharacterSource());
         return map;
     }
 
@@ -138,8 +137,17 @@ public class Response
      */
     public <T> T getContentAsBean(Class<T> cls)
     {
-        T t = getParser().parse(cls, new InputStreamSource(inputStream, false));
+        T t = getParser().parse(cls, getCharacterSource());
         return t;
+    }
+
+    private InputStreamSource getCharacterSource()
+    {
+        if (inputStreamSource == null)
+        {
+            inputStreamSource = new InputStreamSource(inputStream, false);
+        }
+        return inputStreamSource;
     }
 
     public Header[] getResponseHeaders()
@@ -173,7 +181,12 @@ public class Response
         if (method != null)
         {
             method.releaseConnection();
+            if (inputStreamSource != null)
+            {
+                inputStreamSource.destroy();
+            }
             inputStream = null;
+            inputStreamSource = null;
             method = null; 
         }
     }
