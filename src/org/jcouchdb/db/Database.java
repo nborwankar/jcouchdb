@@ -1,5 +1,6 @@
 package org.jcouchdb.db;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -128,13 +129,24 @@ public class Database
      */
     public DatabaseStatus getStatus()
     {
-        Response resp = server.get("/" + name + "/");
-        if (!resp.isOk())
+        Response resp = null;
+        try
         {
-            throw new DataAccessException("error getting database status for database " + name +
-                ": ", resp);
+            resp = server.get("/" + name + "/");
+            if (!resp.isOk())
+            {
+                throw new DataAccessException("error getting database status for database " + name +
+                    ": ", resp);
+            }
+            return resp.getContentAsBean(DatabaseStatus.class);
         }
-        return resp.getContentAsBean(DatabaseStatus.class);
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
+            }
+        }
     }
 
     /**
@@ -143,12 +155,21 @@ public class Database
      */
     public void compact()
     {
-        Response resp = server.get("/" + name + "/_compact");
+        Response resp = null;
+        try
+        {
+            resp = server.get("/" + name + "/_compact");
         if (!resp.isOk())
         {
             throw new DataAccessException("error getting database status for database " + name +
                 ": ", resp);
         }
+        }
+        finally
+        {
+            
+        }
+        
     }
 
     /**
@@ -195,20 +216,32 @@ public class Database
         {
             uri += "?rev="+revision;
         }
-        Response resp = server.get(uri);
-        if (resp.getCode() == 404)
+        Response resp = null;
+        try
         {
-            throw new NotFoundException("document not found", resp);
+            resp = server.get(uri);
+            if (resp.getCode() == 404)
+            {
+                throw new NotFoundException("document not found", resp);
+            }
+            else if (!resp.isOk())
+            {
+                throw new DataAccessException("error getting document " + docId + ": ", resp);
+            }
+            if (parser != null)
+            {
+                resp.setParser(parser);
+            }
+            return resp.getContentAsBean(cls);
         }
-        else if (!resp.isOk())
+        finally
         {
-            throw new DataAccessException("error getting document " + docId + ": ", resp);
+            if (resp != null)
+            {
+                resp.destroy();
+            }
         }
-        if (parser != null)
-        {
-            resp.setParser(parser);
-        }
-        return resp.getContentAsBean(cls);
+
     }
 
     /**
@@ -270,37 +303,49 @@ public class Database
         }
 
         final String json = jsonGenerator.forValue(wrap);
-        Response resp = server.post("/" + name + "/_bulk_docs", json);
-
-        for (Object doc : documents)
+        Response resp = null;
+        try
         {
-            boolean isCreate = DocumentHelper.getId(doc) == null;
-            for (DatabaseEventHandler eventHandler : eventHandlers)
+            resp = server.post("/" + name + "/_bulk_docs", json);
+
+            for (Object doc : documents)
             {
-                if (isCreate)
+                boolean isCreate = DocumentHelper.getId(doc) == null;
+                for (DatabaseEventHandler eventHandler : eventHandlers)
                 {
-                    eventHandler.createdDocument(this, doc, resp);
+                    if (isCreate)
+                    {
+                        eventHandler.createdDocument(this, doc, resp);
+                    }
+                    else
+                    {
+                        eventHandler.updatedDocument(this, doc, resp);
+                    }
                 }
-                else
-                {
-                    eventHandler.updatedDocument(this, doc, resp);
-                }
+            }
+
+            JSONParser parser = new JSONParser();
+            parser.addTypeHint("[]", DocumentInfo.class);
+            resp.setParser(parser);
+            List<DocumentInfo> infos = resp.getContentAsBean(ArrayList.class);
+
+            if (infos != null)
+            {
+                return infos;
+            }
+            else
+            {
+                throw new DataAccessException("Error bulk creating documents", resp);
+            }
+        }
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
             }
         }
 
-        JSONParser parser = new JSONParser();
-        parser.addTypeHint("[]", DocumentInfo.class);
-        resp.setParser(parser);
-        List<DocumentInfo> infos = resp.getContentAsBean(ArrayList.class);
-
-        if (infos != null)
-        {
-            return infos;
-        }
-        else
-        {
-            throw new DataAccessException("Error bulk creating documents", resp);
-        }
     }
 
     /**
@@ -326,16 +371,27 @@ public class Database
             }
         }
 
-        Response response = server.delete("/" + name + "/" + docId+"?rev=" + revision );
-
-        for (DatabaseEventHandler eventHandler : eventHandlers)
+        Response resp = null;
+        try
         {
-            eventHandler.deletedDocument(this, docId, revision, response);
+            resp = server.delete("/" + name + "/" + docId+"?rev=" + revision );
+
+            for (DatabaseEventHandler eventHandler : eventHandlers)
+            {
+                eventHandler.deletedDocument(this, docId, revision, resp);
+            }
+
+            if (!resp.isOk())
+            {
+                throw new DataAccessException("Error deleting document", resp);
+            }
         }
-
-        if (!response.isOk())
+        finally
         {
-            throw new DataAccessException("Error deleting document", response);
+            if (resp != null)
+            {
+                resp.destroy();
+            }
         }
     }
 
@@ -360,73 +416,83 @@ public class Database
      */
     public void createOrUpdateDocument(Object doc)
     {
-        Response resp;
-        String id = DocumentHelper.getId(doc);
-        boolean isCreate = id == null;
+        Response resp = null;
+        try
+        {
+            String id = DocumentHelper.getId(doc);
+            boolean isCreate = id == null;
 
-        for (DatabaseEventHandler eventHandler : eventHandlers)
-        {
-            try
+            for (DatabaseEventHandler eventHandler : eventHandlers)
             {
-                if (isCreate)
+                try
                 {
-                    eventHandler.creatingDocument(this, doc);
+                    if (isCreate)
+                    {
+                        eventHandler.creatingDocument(this, doc);
+                    }
+                    else
+                    {
+                        eventHandler.updatingDocument(this, doc);
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    eventHandler.updatingDocument(this, doc);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new DatabaseEventException(e);
-            }
-        }
-
-        final String json = jsonGenerator.forValue(doc);
-        if (isCreate)
-        {
-            resp = server.post("/" + name + "/", json);
-        }
-        else
-        {
-            resp = server.put("/" + name + "/" + id, json);
-        }
-
-        for (DatabaseEventHandler eventHandler : eventHandlers)
-        {
-            try
-            {
-                if (isCreate)
-                {
-                    eventHandler.createdDocument(this, doc, resp);
-                }
-                else
-                {
-                    eventHandler.updatedDocument(this, doc, resp);
+                    throw new DatabaseEventException(e);
                 }
             }
-            catch (Exception e)
+
+            final String json = jsonGenerator.forValue(doc);
+            if (isCreate)
             {
-                throw new DatabaseEventException(e);
+                resp = server.post("/" + name + "/", json);
+            }
+            else
+            {
+                resp = server.put("/" + name + "/" + id, json);
+            }
+
+            for (DatabaseEventHandler eventHandler : eventHandlers)
+            {
+                try
+                {
+                    if (isCreate)
+                    {
+                        eventHandler.createdDocument(this, doc, resp);
+                    }
+                    else
+                    {
+                        eventHandler.updatedDocument(this, doc, resp);
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new DatabaseEventException(e);
+                }
+            }
+
+            if (resp.getCode() == 409)
+            {
+                throw new UpdateConflictException("error creating document "+json + "in database '" + name + "'", resp);
+            }
+            else if (!resp.isOk())
+            {
+                throw new DataAccessException("error creating document " + json + "in database '" + name + "'", resp);
+            }
+            DocumentInfo info = resp.getContentAsBean(DocumentInfo.class);
+
+            if (isCreate)
+            {
+                DocumentHelper.setId(doc, info.getId());
+            }
+            DocumentHelper.setRevision(doc, info.getRevision());
+        }
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
             }
         }
-
-        if (resp.getCode() == 409)
-        {
-            throw new UpdateConflictException("error creating document "+json + "in database '" + name + "'", resp);
-        }
-        else if (!resp.isOk())
-        {
-            throw new DataAccessException("error creating document " + json + "in database '" + name + "'", resp);
-        }
-        DocumentInfo info = resp.getContentAsBean(DocumentInfo.class);
-
-        if (isCreate)
-        {
-            DocumentHelper.setId(doc, info.getId());
-        }
-        DocumentHelper.setRevision(doc, info.getRevision());
     }
 
     /**
@@ -545,19 +611,30 @@ public class Database
             log.debug("querying view " + uri);
         }
 
-        Response resp = server.post(uri,fn);
-        if (!resp.isOk())
+        Response resp = null;
+        try
         {
-            throw new DataAccessException("error querying view", resp);
-        }
+            resp = server.post(uri,fn);
+            if (!resp.isOk())
+            {
+                throw new DataAccessException("error querying view", resp);
+            }
 
-        if (parser == null)
-        {
-            parser = new JSONParser();
+            if (parser == null)
+            {
+                parser = new JSONParser();
+            }
+            parser.addTypeHint(VIEW_QUERY_VALUE_TYPEHINT, cls);
+            resp.setParser(parser);
+            return resp.getContentAsBean(ViewResult.class);
         }
-        parser.addTypeHint(VIEW_QUERY_VALUE_TYPEHINT, cls);
-        resp.setParser(parser);
-        return resp.getContentAsBean(ViewResult.class);
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
+            }
+        }
     }
 
     /**
@@ -632,37 +709,48 @@ public class Database
             log.debug("querying view " + uri);
         }
 
-        Response resp;
-        if (keys == null)
+        Response resp = null;
+        try
         {
-            resp = server.get(uri);
+            if (keys == null)
+            {
+                resp = server.get(uri);
+            }
+            else
+            {
+                resp = server.post(uri, jsonGenerator.forValue(keys));
+            }
+
+            if (!resp.isOk())
+            {
+                throw new DataAccessException("error querying view", resp);
+            }
+
+            if (parser == null)
+            {
+                parser = new JSONParser();
+            }
+            parser.addTypeHint(VIEW_QUERY_VALUE_TYPEHINT, valueClass);
+            resp.setParser(parser);
+
+            if (isDocumentQuery)
+            {
+                parser.addTypeHint(VIEW_QUERY_DOCUMENT_TYPEHINT, documentClass);
+                return resp.getContentAsBean(ViewAndDocumentsResult.class);
+            }
+            else
+            {
+                return resp.getContentAsBean(ViewResult.class);
+            }
         }
-        else
+        finally
         {
-            resp = server.post(uri, jsonGenerator.forValue(keys));
+            if (resp != null)
+            {
+                resp.destroy();
+            }
         }
 
-        if (!resp.isOk())
-        {
-            throw new DataAccessException("error querying view", resp);
-        }
-
-        if (parser == null)
-        {
-            parser = new JSONParser();
-        }
-        parser.addTypeHint(VIEW_QUERY_VALUE_TYPEHINT, valueClass);
-        resp.setParser(parser);
-
-        if (isDocumentQuery)
-        {
-            parser.addTypeHint(VIEW_QUERY_DOCUMENT_TYPEHINT, documentClass);
-            return resp.getContentAsBean(ViewAndDocumentsResult.class);
-        }
-        else
-        {
-            return resp.getContentAsBean(ViewResult.class);
-        }
     }
 
 
@@ -745,14 +833,25 @@ public class Database
      */
     public String createAttachment(String docId, String revision, String attachmentId, String contentType, byte[] data)
     {
-        Response resp = server.put(attachmentURI(docId, revision, attachmentId) , data, contentType);
-
-        if (!resp.isOk())
+        Response resp = null;
+        try
         {
-            throw new DataAccessException("Error creating attachment",resp);
+            resp = server.put(attachmentURI(docId, revision, attachmentId) , data, contentType);
+
+            if (!resp.isOk())
+            {
+                throw new DataAccessException("Error creating attachment",resp);
+            }
+            Map<String,String> m = resp.getContentAsMap();
+            return m.get("rev");
         }
-        Map<String,String> m = resp.getContentAsMap();
-        return m.get("rev");
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
+            }
+        }
     }
 
     /**
@@ -767,16 +866,59 @@ public class Database
      */
     public String updateAttachment(String docId, String revision, String attachmentId, String contentType , byte[] data)
     {
-        Response resp = server.put(attachmentURI(docId, revision, attachmentId) , data, contentType);
-
-        if (!resp.isOk())
-        {
-            throw new DataAccessException("Error updating attachment",resp);
-        }
-        Map<String,String> m = resp.getContentAsMap();
-        return m.get("rev");
+        Assert.notNull(revision, "revision can't be null");
+        return createAttachment(docId, revision, attachmentId, contentType, data);
     }
 
+    /**
+     * Creates the attachment with the given id on the document with the given document id.
+     *
+     * @param docId             document id
+     * @param attachmentId      attachment id
+     * @param revision          document revision or <code>null</code> if the document with the given id does not exist.
+     * @param contentType       content type of the attachment
+     * @param is                Input stream providing the binary data.
+     * @return new revision
+     */
+    public String createAttachment(String docId, String revision, String attachmentId, String contentType, InputStream is)
+    {
+        Response resp = null;
+        try
+        {
+            resp = server.put(attachmentURI(docId, revision, attachmentId) , is, contentType);
+
+            if (!resp.isOk())
+            {
+                throw new DataAccessException("Error creating attachment",resp);
+            }
+            Map<String,String> m = resp.getContentAsMap();
+            return m.get("rev");
+        }
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
+            }
+        }
+    }
+
+    /**
+     * Updates the attachment with the given id on the document with the given document id and the given revision.
+     *
+     * @param docId             document id
+     * @param revision          document revision
+     * @param attachmentId      attachment id
+     * @param contentType       content type of the attachment
+     * @param data              data of the attachment
+     * @return new revision
+     */
+    public String updateAttachment(String docId, String revision, String attachmentId, String contentType , InputStream is)
+    {
+        Assert.notNull(revision, "revision can't be null");
+        return createAttachment(docId, revision, attachmentId, contentType, is);
+    }
+    
     private String attachmentURI(String docId, String revision, String attachmentId)
     {
         String uri = "/" + name + "/" + docId + "/" + attachmentId;
@@ -798,13 +940,24 @@ public class Database
      */
     public String deleteAttachment(String docId, String revision, String attachmentId)
     {
-        Response resp = server.delete(attachmentURI(docId, revision, attachmentId));
-        if (!resp.isOk())
+        Response resp = null;
+        try
         {
-            throw new DataAccessException("Error deleting attachment",resp);
+            resp = server.delete(attachmentURI(docId, revision, attachmentId));
+            if (!resp.isOk())
+            {
+                throw new DataAccessException("Error deleting attachment",resp);
+            }
+            Map<String,String> m = resp.getContentAsMap();
+            return m.get("rev");
         }
-        Map<String,String> m = resp.getContentAsMap();
-        return m.get("rev");
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
+            }
+        }
     }
 
     /**
@@ -816,6 +969,39 @@ public class Database
      */
     public byte[] getAttachment(String docId, String attachmentId)
     {
+        Response resp = null;
+        try
+        {
+            resp = server.get("/" + name + "/" + docId + "/" + attachmentId);
+            if (resp.getCode() == 404)
+            {
+                throw new NotFoundException("attachment not found", resp);
+            }
+            else if (!resp.isOk())
+            {
+                throw new DataAccessException("error getting attachment '" + attachmentId + "' of document '"+docId + "': ", resp);
+            }
+            return resp.getContent();
+        }
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
+            }
+        }
+    }
+
+    /**
+     * Returns the Response object for the given document and attachment id. Use {@link Response#getInputStream()} to get the input stream
+     * of the attachment and when you're done with it call {@link Response#destroy()} to clean up.
+     *
+     * @param docId             document id
+     * @param attachmentId      attachment id
+     * @return
+     */
+    public Response getAttachmentResponse(String docId, String attachmentId)
+    {
         Response resp = server.get("/" + name + "/" + docId + "/" + attachmentId);
         if (resp.getCode() == 404)
         {
@@ -825,6 +1011,6 @@ public class Database
         {
             throw new DataAccessException("error getting attachment '" + attachmentId + "' of document '"+docId + "': ", resp);
         }
-        return resp.getContent();
+        return resp;
     }
 }

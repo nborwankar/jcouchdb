@@ -29,11 +29,11 @@ public class DataAccessException extends CouchDBException
 
         String message = "code "+ response.getCode();
 
-        final String content = response.getContentAsString();
-        if (content != null && content.length() > 0)
-        {
-            message+=", content = "+content;
-        }
+//        final String content = response.getContentAsString();
+//        if (content != null && content.length() > 0)
+//        {
+//            message+=", content = "+content;
+//        }
 
         return message;
     }

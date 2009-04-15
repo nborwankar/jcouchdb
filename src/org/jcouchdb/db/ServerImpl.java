@@ -1,6 +1,8 @@
 package org.jcouchdb.db;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.apache.commons.httpclient.Credentials;
@@ -13,12 +15,14 @@ import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.Logger;
 import org.jcouchdb.exception.CouchDBException;
 import org.jcouchdb.exception.NoResponseException;
+import org.jcouchdb.util.Assert;
 import org.jcouchdb.util.ExceptionWrapper;
 
 /**
@@ -55,12 +59,23 @@ public class ServerImpl
      */
     public List<String> listDatabases()
     {
-        Response resp = get("/_all_dbs");
-        if (!resp.isOk())
+        Response resp = null;
+        try
         {
-            throw new CouchDBException("Error listing databases: " + resp);
+            resp = get("/_all_dbs");
+            if (!resp.isOk())
+            {
+                throw new CouchDBException("Error listing databases: " + resp);
+            }
+            return resp.getContentAsList();
         }
-        return resp.getContentAsList();
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
+            }
+        }
     }
 
     /**
@@ -68,20 +83,31 @@ public class ServerImpl
      */
     public boolean createDatabase(String name)
     {
-        Response resp = put("/" + name + "/");
-        if (resp.isOk())
+        Response resp = null;
+        try
         {
-            return true;
-        }
-        else
-        {
-            if (resp.getCode() == 412 || resp.getCode() == 500)
+            resp = put("/" + name + "/");
+            if (resp.isOk())
             {
-                return false;
+                return true;
             }
             else
             {
-                throw new CouchDBException("Error creating database: " + resp);
+                if (resp.getCode() == 412 || resp.getCode() == 500)
+                {
+                    return false;
+                }
+                else
+                {
+                    throw new CouchDBException("Error creating database: " + resp);
+                }
+            }
+        }
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
             }
         }
     }
@@ -91,10 +117,21 @@ public class ServerImpl
      */
     public void deleteDatabase(String name)
     {
-        Response resp = delete("/" + name + "/");
-        if (!resp.isOk())
+        Response resp = null;
+        try
         {
-            throw new CouchDBException("Cannot delete database " + name + ": " + resp);
+            resp = delete("/" + name + "/");
+            if (!resp.isOk())
+            {
+                throw new CouchDBException("Cannot delete database " + name + ": " + resp);
+            }
+        }
+        finally
+        {
+            if (resp != null)
+            {
+                resp.destroy();
+            }
         }
     }
 
@@ -113,9 +150,7 @@ public class ServerImpl
         try
         {
             int code = httpClient.executeMethod(method);
-            Response response = new Response(code, method.getResponseBody(), method
-                .getResponseHeaders());
-            return response;
+            return new Response(code, method);
         }
         catch (NoHttpResponseException e)
         {
@@ -132,10 +167,6 @@ public class ServerImpl
         catch (Exception e)
         {
             throw ExceptionWrapper.wrap(e);
-        }
-        finally
-        {
-            method.releaseConnection();
         }
     }
 
@@ -157,39 +188,20 @@ public class ServerImpl
             log.debug("PUT " + uri + ", body = " + body);
         }
         PutMethod putMethod = new PutMethod(uri);
-
-        try
+        if (body != null)
         {
-            if (body != null)
+            try
             {
                 putMethod.setRequestEntity(new StringRequestEntity(body, "application/json",
                     CHARSET));
             }
-            int code = httpClient.executeMethod(putMethod);
-            Response response = new Response(code, putMethod.getResponseBody(), putMethod
-                .getResponseHeaders());
-            return response;
+            catch (UnsupportedEncodingException e)
+            {
+                throw ExceptionWrapper.wrap(e);
+            }
         }
-        catch (NoHttpResponseException e)
-        {
-            throw new NoResponseException();
-        }
-        catch (HttpException e)
-        {
-            throw ExceptionWrapper.wrap(e);
-        }
-        catch (IOException e)
-        {
-            throw ExceptionWrapper.wrap(e);
-        }
-        catch (Exception e)
-        {
-            throw ExceptionWrapper.wrap(e);
-        }
-        finally
-        {
-            putMethod.releaseConnection();
-        }
+
+        return executePutMethod(putMethod);
     }
 
     /**
@@ -208,13 +220,29 @@ public class ServerImpl
             putMethod.setRequestEntity(new ByteArrayRequestEntity(body, contentType));
         }
 
+        return executePutMethod(putMethod);
+    }
+
+    public Response put(String uri, InputStream inputStream, String contentType) throws CouchDBException
+    {
+        Assert.notNull(inputStream, "inputStream can't be null");
+        
+        if (log.isDebugEnabled())
+        {
+            log.debug("PUT " + uri + ", inputStream = " + inputStream);
+        }
+
+        PutMethod putMethod = new PutMethod(uri);
+        putMethod.setRequestEntity(new InputStreamRequestEntity(inputStream, contentType));
+        return executePutMethod(putMethod);
+    }
+    
+    private Response executePutMethod(PutMethod putMethod)
+    {
         try
         {
             int code = httpClient.executeMethod(putMethod);
-            Response response = new Response(code, putMethod.getResponseBody(), putMethod
-                .getResponseHeaders());
-
-            return response;
+            return new Response(code, putMethod);
         }
         catch (NoHttpResponseException e)
         {
@@ -231,10 +259,6 @@ public class ServerImpl
         catch (Exception e)
         {
             throw ExceptionWrapper.wrap(e);
-        }
-        finally
-        {
-            putMethod.releaseConnection();
         }
     }
 
@@ -254,8 +278,7 @@ public class ServerImpl
         {
             postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", CHARSET));
             int code = httpClient.executeMethod(postMethod);
-            Response response = new Response(code, postMethod.getResponseBody(), postMethod
-                .getResponseHeaders());
+            Response response = new Response(code, postMethod);
 
             return response;
         }
@@ -274,10 +297,6 @@ public class ServerImpl
         catch (Exception e)
         {
             throw ExceptionWrapper.wrap(e);
-        }
-        finally
-        {
-            postMethod.releaseConnection();
         }
     }
 
@@ -293,11 +312,11 @@ public class ServerImpl
 
         DeleteMethod deleteMethod = new DeleteMethod(uri);
 
+        Response responce = null;
         try
         {
             int code = httpClient.executeMethod(deleteMethod);
-            Response response = new Response(code, deleteMethod.getResponseBody(), deleteMethod
-                .getResponseHeaders());
+            Response response = new Response(code, deleteMethod);
 
             return response;
         }
@@ -316,10 +335,6 @@ public class ServerImpl
         catch (Exception e)
         {
             throw ExceptionWrapper.wrap(e);
-        }
-        finally
-        {
-            deleteMethod.releaseConnection();
         }
     }
 

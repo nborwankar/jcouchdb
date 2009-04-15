@@ -6,6 +6,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.jcouchdb.document.Attachment;
 import org.jcouchdb.document.BaseDocument;
@@ -549,7 +553,7 @@ public class LocalDatabaseTestCase
 
         BaseDocument newdoc = new BaseDocument();
         final String value = "baz403872349";
-        newdoc.setProperty("foo",value); // same as JSON: { foo: "baz"; }
+        newdoc.setProperty("foo",value); // same as JSON: { foo: "baz..." }
 
         assertThat(newdoc.getId(), is(nullValue()));
         assertThat(newdoc.getRevision(), is(nullValue()));
@@ -563,5 +567,29 @@ public class LocalDatabaseTestCase
 
         assertThat((String)doc.getProperty("foo"), is(value));
 
+    }
+    
+    @Test
+    public void testAttachmentStreaming() throws IOException
+    {
+        Database db = createDatabaseForTest();
+        
+        final String docId = "attachmentStreamingDoc";
+        final String content = "Streaming test.";
+        final String content2 = "Streaming test 2.";
+        String revision = db.createAttachment(docId, null, "test.txt", "text/plain", new ByteArrayInputStream(content.getBytes()));
+        assertThat(revision.length(), is(greaterThan(0)));
+        
+        Response resp = db.getAttachmentResponse(docId, "test.txt");
+        InputStream is = resp.getInputStream();
+        assertThat(new String(IOUtils.toByteArray(is)), is(content));
+        resp.destroy();
+        
+        revision = db.updateAttachment(docId, revision, "test.txt", "text/plain", new ByteArrayInputStream(content2.getBytes()));
+            
+        resp = db.getAttachmentResponse(docId, "test.txt");
+        is = resp.getInputStream();
+        assertThat(new String(IOUtils.toByteArray(is)), is(content2));
+        resp.destroy();
     }
 }

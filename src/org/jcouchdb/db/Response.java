@@ -1,13 +1,21 @@
 package org.jcouchdb.db;
 
-import java.util.HashMap;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.log4j.Logger;
-import org.jcouchdb.document.InstanceCachable;
+import org.jcouchdb.exception.DataAccessException;
+import org.jcouchdb.util.Assert;
+import org.jcouchdb.util.ExceptionWrapper;
 import org.svenson.JSONParser;
+import org.svenson.tokenize.InputStreamSource;
+
+import com.sun.org.apache.bcel.internal.ExceptionConstants;
 
 /**
  * Encapsulates a couchdb server response with error code and received
@@ -21,43 +29,57 @@ public class Response
     protected static Logger log = Logger.getLogger(Response.class);
 
     private int code;
-    private byte[] content;
 
     private JSONParser parser;
 
-    private Map<Class,Object> responseCache = new HashMap<Class,Object>();
-
-    private String stringContent;
-
     private Header[] headers;
 
-    public Response(int code, byte[] content)
+    private InputStream inputStream;
+
+    private int length;
+
+    private HttpMethodBase method;
+
+    public Response(int code, String s)
     {
-        this(code,content,null);
+        this( code, new ByteArrayInputStream(s.getBytes()), s.length(), null);
     }
 
-    public Response(int code, String content)
+    public Response(int code, InputStream stream, int length)
     {
-        this(code,content,null);
+        this( code, stream, length, null);
     }
 
-    public Response(int code, byte[] content, Header[] headers)
+    public Response(int code, HttpMethodBase method) throws IOException
     {
-        this.code = code;
-        this.content = content;
-        this.headers = headers;
-
-        if (log.isTraceEnabled())
+        this( code, method.getResponseBodyAsStream(), (int)method.getResponseContentLength(), method.getResponseHeaders());
+        this.method = method;
+        
+        // if we have no length we must read the complete response body now as we need the length
+        // this should only happen for responses where the Transfer-Encoding: chunked is set 
+        if (length < 0)
         {
-            log.trace(this);
+            byte[] data;
+            try
+            {
+                data = method.getResponseBody();
+            }
+            catch (IOException e)
+            {
+                throw ExceptionWrapper.wrap(e);
+            }
+            this.inputStream = new ByteArrayInputStream(data);
+            this.length = data.length;
         }
     }
 
-    public Response(int code, String content, Header[] headers)
+    public Response(int code, InputStream stream, int length, Header[] headers)
     {
+        Assert.notNull(stream, "stream can't be null");
+        
+        this.inputStream = stream;
+        this.length = length;            
         this.code = code;
-        this.content = null;
-        this.stringContent = content;
         this.headers = headers;
 
         if (log.isTraceEnabled())
@@ -84,25 +106,36 @@ public class Response
     {
         return code;
     }
+    
 
     public byte[] getContent()
-    {
-        if (content == null)
+    {        
+        try
         {
-            content = stringContent.getBytes();
+            byte[] data = new byte[length];
+            
+            int read = 0;
+            
+            while (read < length)
+            {
+                int bytes = inputStream.read(data, read, length - read);
+                read += bytes;
+            }
+            return data;
         }
-
-        return content;
+        catch (IOException e)
+        {
+            throw new DataAccessException("error reading content from response", null);
+        }
     }
 
     public String getContentAsString()
     {
-        if (stringContent == null)
+        if (log.isDebugEnabled())
         {
-            stringContent = new String(content);
-            content = null;
+            log.debug("getContentAsString on "+this);
         }
-        return stringContent;
+        return new String(getContent());
     }
 
     /**
@@ -111,7 +144,8 @@ public class Response
      */
     public List getContentAsList()
     {
-        return getParser().parse(List.class, getContentAsString());
+        List list = getParser().parse(List.class, new InputStreamSource(inputStream, length, false));
+        return list;
     }
 
     /**
@@ -120,7 +154,8 @@ public class Response
      */
     public Map getContentAsMap()
     {
-        return getParser().parse(Map.class, getContentAsString());
+        Map map = getParser().parse(Map.class, new InputStreamSource(inputStream, length, false));
+        return map;
     }
 
     /**
@@ -131,29 +166,18 @@ public class Response
      */
     public <T> T getContentAsBean(Class<T> cls)
     {
-        T cached = null;
-
-        boolean instanceCachable = cls.getAnnotation(InstanceCachable.class) != null;
-
-        if (instanceCachable)
-        {
-            cached = (T)responseCache.get(cls);
-        }
-        if (cached == null)
-        {
-            cached = getParser().parse(cls, getContentAsString());
-
-            if (instanceCachable)
-            {
-                responseCache.put(cls, cached);
-            }
-        }
-        return cached;
+        T t = getParser().parse(cls, new InputStreamSource(inputStream, length, false));
+        return t;
     }
 
     public Header[] getResponseHeaders()
     {
         return headers;
+    }
+    
+    public InputStream getInputStream()
+    {
+        return inputStream;
     }
 
     /**
@@ -169,7 +193,17 @@ public class Response
     @Override
     public String toString()
     {
-        return super.toString()+": code = "+code+", content = "+( stringContent != null ? stringContent : new String(content));
+        return super.toString()+": code = "+code+", stream = " + inputStream + ", length = " + length;
+    }
+
+    public void destroy()
+    {
+        if (method != null)
+        {
+            method.releaseConnection();
+            inputStream = null;
+            method = null; 
+        }
     }
 }
 

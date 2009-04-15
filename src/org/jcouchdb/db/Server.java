@@ -1,5 +1,6 @@
 package org.jcouchdb.db;
 
+import java.io.InputStream;
 import java.util.List;
 
 import org.apache.commons.httpclient.Credentials;
@@ -65,6 +66,15 @@ public interface Server
      * @return
      */
     Response put(String uri, byte[] body, String contentType) throws CouchDBException;
+
+    /**
+     * Send a PUT request to the given URI with
+     * the given body from the given InputStream
+     * @param uri
+     * @param contentType   content type
+     * @return
+     */
+    Response put(String uri, InputStream inputStream, String contentType) throws CouchDBException;
 
     /**
      * Send a POST request to the given URI with
