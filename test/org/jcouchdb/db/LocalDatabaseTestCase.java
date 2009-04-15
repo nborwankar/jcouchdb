@@ -42,8 +42,6 @@ import org.svenson.JSON;
  */
 public class LocalDatabaseTestCase
 {
-    private static final String ATTACHMENT_CONTENT = "The quick brown fox jumps over the lazy dog.";
-
     private JSON jsonGenerator = new JSON();
 
     private final static String COUCHDB_HOST = "localhost";
@@ -62,7 +60,17 @@ public class LocalDatabaseTestCase
 
     public static Database createDatabaseForTest()
     {
-        return new Database(COUCHDB_HOST, COUCHDB_PORT, TESTDB_NAME);
+        Server server = new ServerImpl(COUCHDB_HOST, COUCHDB_PORT);
+        List<String> databases = server.listDatabases();
+
+        log.debug("databases = " + databases);
+
+        if (!databases.contains(TESTDB_NAME))
+        {
+            server.createDatabase(TESTDB_NAME);
+        }
+
+        return new Database(server,TESTDB_NAME);
     }
 
     @Test
@@ -442,8 +450,10 @@ public class LocalDatabaseTestCase
     @Test
     public void thatAttachmentHandlingWorks() throws UnsupportedEncodingException
     {
+        final String attachmentContent = "The quick brown fox jumps over the lazy dog.";
+        
         FooDocument fooDocument = new FooDocument("foo with attachment");
-        fooDocument.addAttachment("test", new Attachment("text/plain", ATTACHMENT_CONTENT.getBytes()));
+        fooDocument.addAttachment("test", new Attachment("text/plain", attachmentContent.getBytes()));
 
         Database db = createDatabaseForTest();
         db.createDocument(fooDocument);
@@ -459,14 +469,14 @@ public class LocalDatabaseTestCase
         assertThat(attachment.getLength(), is(44l));
 
         String content = new String(db.getAttachment(id, "test"));
-        assertThat(content, is(ATTACHMENT_CONTENT));
+        assertThat(content, is(attachmentContent));
 
-        String newRev = db.updateAttachment(fooDocument.getId(), fooDocument.getRevision(), "test", "text/plain", (ATTACHMENT_CONTENT+"!!").getBytes());
+        String newRev = db.updateAttachment(fooDocument.getId(), fooDocument.getRevision(), "test", "text/plain", (attachmentContent+"!!").getBytes());
         assertThat(newRev, is(notNullValue()));
         assertThat(newRev.length(), is(greaterThan(0)));
 
         content = new String(db.getAttachment(id, "test"));
-        assertThat(content, is(ATTACHMENT_CONTENT+"!!"));
+        assertThat(content, is(attachmentContent+"!!"));
 
         newRev = db.deleteAttachment(fooDocument.getId(), newRev, "test");
 

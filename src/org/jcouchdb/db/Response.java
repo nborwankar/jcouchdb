@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.util.Assert;
@@ -36,49 +37,29 @@ public class Response
 
     private InputStream inputStream;
 
-    private int length;
-
     private HttpMethodBase method;
 
     public Response(int code, String s)
     {
-        this( code, new ByteArrayInputStream(s.getBytes()), s.length(), null);
+        this( code, new ByteArrayInputStream(s.getBytes()), null);
     }
 
     public Response(int code, InputStream stream, int length)
     {
-        this( code, stream, length, null);
+        this( code, stream, null);
     }
 
     public Response(int code, HttpMethodBase method) throws IOException
     {
-        this( code, method.getResponseBodyAsStream(), (int)method.getResponseContentLength(), method.getResponseHeaders());
-        this.method = method;
-        
-        // if we have no length we must read the complete response body now as we need the length
-        // this should only happen for responses where the Transfer-Encoding: chunked is set 
-        if (length < 0)
-        {
-            byte[] data;
-            try
-            {
-                data = method.getResponseBody();
-            }
-            catch (IOException e)
-            {
-                throw ExceptionWrapper.wrap(e);
-            }
-            this.inputStream = new ByteArrayInputStream(data);
-            this.length = data.length;
-        }
+        this( code, method.getResponseBodyAsStream(), method.getResponseHeaders());
+        this.method = method;        
     }
 
-    public Response(int code, InputStream stream, int length, Header[] headers)
+    public Response(int code, InputStream stream, Header[] headers)
     {
         Assert.notNull(stream, "stream can't be null");
         
         this.inputStream = stream;
-        this.length = length;            
         this.code = code;
         this.headers = headers;
 
@@ -112,16 +93,7 @@ public class Response
     {        
         try
         {
-            byte[] data = new byte[length];
-            
-            int read = 0;
-            
-            while (read < length)
-            {
-                int bytes = inputStream.read(data, read, length - read);
-                read += bytes;
-            }
-            return data;
+            return IOUtils.toByteArray(inputStream);
         }
         catch (IOException e)
         {
@@ -144,7 +116,7 @@ public class Response
      */
     public List getContentAsList()
     {
-        List list = getParser().parse(List.class, new InputStreamSource(inputStream, length, false));
+        List list = getParser().parse(List.class, new InputStreamSource(inputStream, false));
         return list;
     }
 
@@ -154,7 +126,7 @@ public class Response
      */
     public Map getContentAsMap()
     {
-        Map map = getParser().parse(Map.class, new InputStreamSource(inputStream, length, false));
+        Map map = getParser().parse(Map.class, new InputStreamSource(inputStream, false));
         return map;
     }
 
@@ -166,7 +138,7 @@ public class Response
      */
     public <T> T getContentAsBean(Class<T> cls)
     {
-        T t = getParser().parse(cls, new InputStreamSource(inputStream, length, false));
+        T t = getParser().parse(cls, new InputStreamSource(inputStream, false));
         return t;
     }
 
@@ -193,7 +165,7 @@ public class Response
     @Override
     public String toString()
     {
-        return super.toString()+": code = "+code+", stream = " + inputStream + ", length = " + length;
+        return super.toString()+": code = "+code+", stream = " + inputStream;
     }
 
     public void destroy()
