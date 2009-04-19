@@ -1,6 +1,11 @@
 jcouchdb JSON library change log:
 =================================
 
+Changes from 0.9.0-1 to 0.9.0-2:
+
+ * Streaming attachment handling
+ * uses svenson 1.3 for JSON streaming and improved memory footprint
+
 Changes from 0.7.2 to 0.9.0-1:
 
  * Reflects all changes from couchdb 0.8.1 to 0.9.0
