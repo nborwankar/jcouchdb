@@ -211,7 +211,7 @@ public class Database
         Assert.notNull(cls, "class cannot be null");
         Assert.notNull(docId, "document id cannot be null");
 
-        String uri = "/" + name + "/" + docId;
+        String uri = "/" + name + "/" + escapeSlashes(docId);
         if (revision != null)
         {
             uri += "?rev="+revision;
@@ -374,7 +374,7 @@ public class Database
         Response resp = null;
         try
         {
-            resp = server.delete("/" + name + "/" + docId+"?rev=" + revision );
+            resp = server.delete("/" + name + "/" + escapeSlashes(docId)+"?rev=" + revision );
 
             for (DatabaseEventHandler eventHandler : eventHandlers)
             {
@@ -448,7 +448,7 @@ public class Database
             }
             else
             {
-                resp = server.put("/" + name + "/" + id, json);
+                resp = server.put("/" + name + "/" + escapeSlashes(id), json);
             }
 
             for (DatabaseEventHandler eventHandler : eventHandlers)
@@ -554,6 +554,11 @@ public class Database
         return (ViewResult<V>)queryViewInternal(viewURIFromName(viewName), cls, null, options, parser, null);
     }
 
+    private static String escapeSlashes(String s)
+    {
+        return s.replace("/", "%2F");
+    }
+    
     private String viewURIFromName(String viewName)
     {
         int slashPos = viewName.indexOf("/");
@@ -561,7 +566,7 @@ public class Database
         {
             throw new IllegalArgumentException("viewName must contain a slash separating the design doc name from the view name");
         }
-        return VIEW_DOCUMENT_PREFIX + viewName.substring(0,slashPos) + VIEW_DOCUMENT_INFIX + viewName.substring(slashPos + 1);
+        return VIEW_DOCUMENT_PREFIX + escapeSlashes(viewName.substring(0,slashPos)) + VIEW_DOCUMENT_INFIX + escapeSlashes(viewName.substring(slashPos + 1));
     }
 
 
@@ -921,7 +926,7 @@ public class Database
     
     private String attachmentURI(String docId, String revision, String attachmentId)
     {
-        String uri = "/" + name + "/" + docId + "/" + attachmentId;
+        String uri = "/" + name + "/" + escapeSlashes(docId) + "/" + attachmentId;
         if (revision != null)
         {
             uri +="?rev="+revision;
@@ -972,7 +977,7 @@ public class Database
         Response resp = null;
         try
         {
-            resp = server.get("/" + name + "/" + docId + "/" + attachmentId);
+            resp = server.get("/" + name + "/" + escapeSlashes(docId) + "/" + attachmentId);
             if (resp.getCode() == 404)
             {
                 throw new NotFoundException("attachment not found", resp);
@@ -1002,7 +1007,7 @@ public class Database
      */
     public Response getAttachmentResponse(String docId, String attachmentId)
     {
-        Response resp = server.get("/" + name + "/" + docId + "/" + attachmentId);
+        Response resp = server.get("/" + name + "/" + escapeSlashes(docId) + "/" + attachmentId);
         if (resp.getCode() == 404)
         {
             throw new NotFoundException("attachment not found", resp);

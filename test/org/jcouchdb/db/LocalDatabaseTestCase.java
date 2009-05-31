@@ -50,7 +50,7 @@ public class LocalDatabaseTestCase
 
     private static final String TESTDB_NAME = "jcouchdb_test";
 
-    private static final String MY_FOO_DOC_ID = "myFooDocId";
+    private static final String MY_FOO_DOC_ID = "myFoo/DocId";
 
     private static final String BY_VALUE_FUNCTION = "function(doc) { if (doc.type == 'foo') { emit(doc.value,doc); }  }";
 
