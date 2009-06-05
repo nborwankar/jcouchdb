@@ -373,7 +373,9 @@ public class LocalDatabaseTestCase
         docs.add(new FooDocument("doc-1"));
 
         docs.add(fooDocument);
-        docs.add(new FooDocument("doc-3"));
+        FooDocument fd2 = new FooDocument("doc-3");
+        fd2.setId(MY_FOO_DOC_ID);
+        docs.add(fd2);
 
         List<DocumentInfo> infos = db.bulkCreateDocuments(docs);
 
@@ -381,7 +383,10 @@ public class LocalDatabaseTestCase
 
         assertThat(infos.get(0).getId().length(), is(greaterThan(0)));
         assertThat(infos.get(1).getId(), is("second-foo-with-id"));
-        assertThat(infos.get(2).getId().length(), is(greaterThan(0)));
+        
+        // conflict results in error and reason being set
+        assertThat(infos.get(2).getError().length(), is(greaterThan(0)));
+        assertThat(infos.get(2).getReason().length(), is(greaterThan(0)));
 
     }
 

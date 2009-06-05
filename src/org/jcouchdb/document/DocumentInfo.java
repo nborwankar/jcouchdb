@@ -10,7 +10,7 @@ import org.svenson.JSONProperty;
  */
 public class DocumentInfo
 {
-    private String id, revision, error;
+    private String id, revision, error, reason;
 
     private boolean ok;
 
@@ -59,9 +59,19 @@ public class DocumentInfo
         this.error = error;
     }
 
+    public String getReason()
+    {
+        return reason;
+    }
+
+    public void setReason(String reason)
+    {
+        this.reason = reason;
+    }
+    
     @Override
     public String toString()
     {
-        return super.toString()+": id = "+id+", revision = "+revision+(ok ? ", ok = true" : ", ok = false, error = "+error);
+        return super.toString()+": id = "+id+", revision = "+revision+(ok ? ", ok = true" : ", ok = false, error = "+error+", reason = " + reason);
     }
 }
