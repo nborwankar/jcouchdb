@@ -3,17 +3,20 @@ package org.jcouchdb.db;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpEntity;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.util.Assert;
 import org.svenson.JSONParser;
 import org.svenson.tokenize.InputStreamSource;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * Encapsulates a couchdb server response with error code and received
@@ -24,7 +27,7 @@ import org.svenson.tokenize.InputStreamSource;
  */
 public class Response
 {
-    protected static Logger log = Logger.getLogger(Response.class);
+    protected static Logger log = LoggerFactory.getLogger(Response.class);
 
     private int code;
 
@@ -34,10 +37,11 @@ public class Response
 
     private InputStream inputStream;
 
-    private HttpMethodBase method;
+    //private HttpMethodBase method;
 
     private InputStreamSource inputStreamSource;
 
+    /*
     public Response(int code, String s)
     {
         this( code, new ByteArrayInputStream(s.getBytes()), null);
@@ -64,9 +68,36 @@ public class Response
 
         if (log.isTraceEnabled())
         {
-            log.trace(this);
+            log.trace( this.toString() );
         }
     }
+    */
+
+    public Response(HttpResponse response) throws IOException {
+        HttpEntity entity = response.getEntity();
+
+        Assert.notNull(entity, "stream can't be null");
+
+
+        ByteArrayOutputStream bout = new ByteArrayOutputStream(  );
+        InputStream rin = entity.getContent();
+        int i = 0;
+        while( (i=rin.read()) != -1 )
+            bout.write( i );
+        bout.close();
+        ByteArrayInputStream in = new ByteArrayInputStream( bout.toByteArray() );
+
+        this.inputStream = in;
+
+        //this.inputStream = entity.getContent();
+        this.code = response.getStatusLine().getStatusCode();
+        this.headers = response.getAllHeaders();
+
+        if (log.isTraceEnabled()) {
+            log.trace( "Constructor of Response", this );
+        }
+    }
+
 
     public void setParser(JSONParser parser)
     {
@@ -178,17 +209,7 @@ public class Response
 
     public void destroy()
     {
-        if (method != null)
-        {
-            method.releaseConnection();
-            if (inputStreamSource != null)
-            {
-                inputStreamSource.destroy();
-            }
-            inputStream = null;
-            inputStreamSource = null;
-            method = null; 
-        }
+
     }
 }
 

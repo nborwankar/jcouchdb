@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.log4j.Logger;
 import org.jcouchdb.db.Database;
 import org.jcouchdb.db.Server;
 import org.jcouchdb.document.Attachment;
@@ -14,10 +13,12 @@ import org.jcouchdb.document.BaseDocument;
 import org.jcouchdb.document.ValueRow;
 import org.jcouchdb.document.ViewResult;
 import org.svenson.JSON;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 public class CouchDBDumper
 {
-    private static Logger log = Logger.getLogger(CouchDBDumper.class);
+    private static Logger log = LoggerFactory.getLogger(CouchDBDumper.class);
 
     public void dumpDatabase(Server server, String name, OutputStream os, boolean inlineAttachments) throws IOException
     {

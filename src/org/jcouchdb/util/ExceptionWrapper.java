@@ -3,8 +3,8 @@ package org.jcouchdb.util;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.commons.httpclient.HttpException;
 import org.jcouchdb.exception.CouchDBException;
+import org.apache.http.HttpException;
 
 /**
  * Used to wrap checked exceptions in {@link CouchDBException}s throughout the project.

@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.jcouchdb.document.AbstractViewResult;
 import org.jcouchdb.document.DesignDocument;
 import org.jcouchdb.document.DocumentHelper;
@@ -19,6 +18,8 @@ import org.jcouchdb.exception.UpdateConflictException;
 import org.jcouchdb.util.Assert;
 import org.svenson.JSON;
 import org.svenson.JSONParser;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * Contains the main interface of working with a couchdb database
@@ -36,7 +37,7 @@ public class Database
     static final String VIEW_QUERY_VALUE_TYPEHINT = ".rows[].value";
     private static final String VIEW_QUERY_DOCUMENT_TYPEHINT = ".rows[].doc";
 
-    protected static Logger log = Logger.getLogger(Database.class);
+    protected static Logger log = LoggerFactory.getLogger(Database.class);
 
     /**
      * Name of the all docs view.
@@ -915,7 +916,7 @@ public class Database
      * @param revision          document revision
      * @param attachmentId      attachment id
      * @param contentType       content type of the attachment
-     * @param data              data of the attachment
+     * @param is                data of the attachment
      * @return new revision
      */
     public String updateAttachment(String docId, String revision, String attachmentId, String contentType , InputStream is)

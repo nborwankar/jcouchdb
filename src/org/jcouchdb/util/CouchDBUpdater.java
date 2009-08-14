@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
 import org.jcouchdb.db.Database;
 import org.jcouchdb.document.DesignDocument;
 import org.jcouchdb.document.View;
 import org.jcouchdb.exception.NotFoundException;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 public class CouchDBUpdater
 {
@@ -21,7 +22,7 @@ public class CouchDBUpdater
 
     private static final String MAP_SUFFIX = ".map.js";
 
-    protected static Logger log = Logger.getLogger(CouchDBUpdater.class);
+    protected static Logger log = LoggerFactory.getLogger(CouchDBUpdater.class);
 
     private Database database;
 

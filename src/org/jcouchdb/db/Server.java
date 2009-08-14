@@ -3,8 +3,8 @@ package org.jcouchdb.db;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apache.commons.httpclient.Credentials;
-import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.AuthScope;
 import org.jcouchdb.exception.CouchDBException;
 
 /**

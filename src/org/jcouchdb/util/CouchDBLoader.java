@@ -11,19 +11,20 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.log4j.Logger;
 import org.jcouchdb.db.Database;
 import org.jcouchdb.db.Server;
 import org.jcouchdb.document.Attachment;
 import org.jcouchdb.document.BaseDocument;
 import org.jcouchdb.exception.NotFoundException;
 import org.svenson.JSONParser;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 public class CouchDBLoader
 {
     private static final String JSON_EXTENSION = ".json";
 
-    private static Logger log = Logger.getLogger(CouchDBLoader.class);
+    private static Logger log = LoggerFactory.getLogger(CouchDBLoader.class);
 
     public void load(ZipInputStream zis, Server server, String name) throws IOException
     {

@@ -1,7 +1,8 @@
 package org.jcouchdb.document;
 
-import org.apache.log4j.Logger;
 import org.jcouchdb.util.Util;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 
 /**
@@ -12,7 +13,7 @@ import org.jcouchdb.util.Util;
  */
 public class View
 {
-    private static Logger log = Logger.getLogger(View.class);
+    private static Logger log = LoggerFactory.getLogger(View.class);
 
     private String map,reduce;
 
