@@ -1,36 +1,43 @@
 package org.jcouchdb.db;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerPNames;
 import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.HttpVersion;
-import org.apache.http.HttpResponse;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.client.methods.*;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.AuthScope;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.jcouchdb.exception.CouchDBException;
-import org.jcouchdb.exception.NoResponseException;
 import org.jcouchdb.util.Assert;
 import org.jcouchdb.util.ExceptionWrapper;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default implementation of the {@link Server} interface.
@@ -42,87 +49,34 @@ public class ServerImpl
 {
     private static final String CHARSET = "UTF-8";
 
-    protected static Logger             log = LoggerFactory.getLogger(ServerImpl.class);
+    protected static Logger log = LoggerFactory.getLogger(ServerImpl.class);
 
-    private HttpParams                  defaultParameters;
-    private SchemeRegistry              supportedSchemes;
-    private ClientConnectionManager     clcm;
-    private AuthScope                   authScope;
-    private Credentials                 credentials;
-    private HttpContext                 context;
+    private ClientConnectionManager clientConnectionManager;
 
-    private String                      serverURI;
-    private DefaultHttpClient           httpClient;
+    private AuthScope authScope;
 
-    private int                         MAX_CONNECTIONS_PER_ROUTE;
-    private int                         MAX_TOTAL_CONNECTIONS;
+    private Credentials credentials;
 
+    private HttpContext context;
 
+    private String serverURI;
+
+    private volatile DefaultHttpClient httpClient;
+
+    private int maxConnectionsPerRoute = 10;
+
+    private int maxTotalConnections = 25;
+
+    public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute)
     {
-
-        MAX_CONNECTIONS_PER_ROUTE   = 100;
-        MAX_TOTAL_CONNECTIONS       = 1000;
-
-        setup();
-        clcm = createManager();
-        httpClient = getHttpClient();
+        this.maxConnectionsPerRoute = maxConnectionsPerRoute;
     }
-
-    private final void setup() {
-        supportedSchemes = new SchemeRegistry();
-        SocketFactory sf = PlainSocketFactory.getSocketFactory();
-        supportedSchemes.register(new Scheme("http", sf, 80));
-
-        HttpParams params = new BasicHttpParams( );
-        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-        HttpProtocolParams.setUseExpectContinue(params, false);
-
-        defaultParameters = params;
-
-        context = new BasicHttpContext( );
-    }
-
-    private final ClientConnectionManager createManager() {
-        defaultParameters.setParameter(
-                ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE,
-                new ConnPerRouteBean( MAX_CONNECTIONS_PER_ROUTE )
-        );
-
-        defaultParameters.setParameter(
-                ConnManagerPNames.MAX_TOTAL_CONNECTIONS,
-                MAX_TOTAL_CONNECTIONS
-        );
-
-        return new ThreadSafeClientConnManager( defaultParameters, supportedSchemes );
-    }
-
-    private final DefaultHttpClient getHttpClient(){
-        DefaultHttpClient httpClient = new DefaultHttpClient( clcm, defaultParameters );
-        if( authScope != null ){
-            httpClient.getCredentialsProvider().setCredentials( authScope, credentials );
-        }
-        return httpClient;
-    }
-
-    private final Response execute( HttpRequestBase request ) throws IOException {
-        HttpResponse res = httpClient.execute( request, context );
-        Response response = new Response( res );
-        request.abort();
-        return response;
-    }
-
-    private Response executePut(HttpPut put) {
-        try {
-            return execute( put );
-        }
-        catch (IOException e) {
-            put.abort();
-            throw ExceptionWrapper.wrap(e);
-        }
-    }
-
     
-
+    public void setMaxTotalConnections(int maxTotalConnections)
+    {
+        this.maxTotalConnections = maxTotalConnections;
+    }
+    
     public ServerImpl(String host)
     {
         this(host, DEFAULT_PORT);
@@ -131,12 +85,61 @@ public class ServerImpl
     public ServerImpl(String host, int port)
     {
         this.serverURI = "http://" + host + ":" + port;
-        /*this.hostConfiguration = new HostConfiguration();
-        this.hostConfiguration.setHost(host, port);
-        httpClient.setHostConfiguration(hostConfiguration);
-        httpClient.setHttpConnectionManager(new MultiThreadedHttpConnectionManager());*/
     }
 
+    private DefaultHttpClient getHttpClient()
+    {
+        if (httpClient == null)
+        {
+            synchronized(this)
+            {
+                if (httpClient == null)
+                {
+                    SchemeRegistry supportedSchemes = new SchemeRegistry();
+                    SocketFactory sf = PlainSocketFactory.getSocketFactory();
+                    supportedSchemes.register(new Scheme("http", sf, 80));
+            
+                    HttpParams params = new BasicHttpParams();
+                    HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+                    HttpProtocolParams.setUseExpectContinue(params, false);
+                    params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(maxConnectionsPerRoute));
+            
+                    params.setParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, maxTotalConnections);
+            
+                    context = new BasicHttpContext();
+                    clientConnectionManager = new ThreadSafeClientConnManager( params, supportedSchemes);
+                    httpClient = new DefaultHttpClient(clientConnectionManager, params);
+                    if (authScope != null)
+                    {
+                        httpClient.getCredentialsProvider().setCredentials(authScope, credentials);
+                    }
+                }
+            }
+        }
+        return httpClient;
+    }
+
+    private final Response execute( HttpRequestBase request ) throws ClientProtocolException, IOException 
+    {
+        HttpResponse res = getHttpClient().execute( request, context );
+        return new Response( res );
+    }
+
+
+    private Response executePut(HttpPut put)
+    {
+        try
+        {
+            return execute(put);
+        }
+        catch (IOException e)
+        {
+            put.abort();
+            throw ExceptionWrapper.wrap(e);
+        }
+    }
+
+    
     /**
      * {@inheritDoc}
      */
@@ -282,29 +285,20 @@ public class ServerImpl
         {
             log.debug("PUT " + uri + ", body = " + body);
         }
-        
-        HttpPut put = new HttpPut( serverURI + uri );
-        if (body != null) {
-            ByteArrayEntity reqEntity = new ByteArrayEntity( body );
-            reqEntity.setContentType( contentType );
-            put.setEntity( reqEntity );
+
+        HttpPut put = new HttpPut(serverURI + uri);
+        if (body != null)
+        {
+            ByteArrayEntity reqEntity = new ByteArrayEntity(body);
+            reqEntity.setContentType(contentType);
+            put.setEntity(reqEntity);
         }
 
-        return executePut( put );
+        return executePut(put);
     }
 
-    private byte[] getAsByteArray( InputStream inputStream ) throws IOException {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        BufferedInputStream bin = new BufferedInputStream( inputStream );
-        int i = 0;
-        while( (i = bin.read()) != -1 )
-            bout.write( i );
-        bin.close();
-        bout.close();
-        return bout.toByteArray();
-    }
     
-    public Response put(String uri, InputStream inputStream, String contentType) throws CouchDBException
+    public Response put(String uri, InputStream inputStream, String contentType, long length) throws CouchDBException
     {
         Assert.notNull(inputStream, "inputStream can't be null");
 
@@ -313,11 +307,11 @@ public class ServerImpl
             log.debug("PUT " + uri + ", inputStream = " + inputStream);
         }
 
-        try {
-            return put( uri, getAsByteArray( inputStream ), contentType );
-        } catch (IOException e) {
-            throw new CouchDBException( e );
-        }
+        HttpPut put = new HttpPut(serverURI + uri);
+        InputStreamEntity entity = new InputStreamEntity( inputStream, length);
+        entity.setContentType(contentType);
+        put.setEntity(entity);
+        return executePut(put);
     }
 
     /**
@@ -332,15 +326,17 @@ public class ServerImpl
 
         HttpPost post = new HttpPost( serverURI + uri );
 
-        try {
-            StringEntity reqEntity = new StringEntity( body );
+        try
+        {
+            StringEntity reqEntity = new StringEntity(body);
             reqEntity.setContentType("application/json");
-            reqEntity.setContentEncoding( CHARSET );
-            post.setEntity( reqEntity );
+            reqEntity.setContentEncoding(CHARSET);
+            post.setEntity(reqEntity);
 
-            return execute( post );
+            return execute(post);
         }
-        catch (IOException e) {
+        catch (IOException e)
+        {
             post.abort();
             throw ExceptionWrapper.wrap(e);
         }
@@ -358,10 +354,12 @@ public class ServerImpl
 
         HttpDelete delete = new HttpDelete( serverURI + uri );
 
-        try {
-            return execute( delete );
+        try
+        {
+            return execute(delete);
         }
-        catch (IOException e) {
+        catch (IOException e)
+        {
             delete.abort();
             throw ExceptionWrapper.wrap(e);
         }
@@ -374,6 +372,16 @@ public class ServerImpl
     {
         this.authScope      = authScope;
         this.credentials    = credentials;
-        httpClient = getHttpClient();
+        httpClient = null;
+    }
+
+    public void shutDown()
+    {
+        if (clientConnectionManager != null)
+        {
+            clientConnectionManager.shutdown();
+        }
+        httpClient = null;
+        clientConnectionManager = null;
     }
 }

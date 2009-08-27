@@ -74,7 +74,7 @@ public interface Server
      * @param contentType   content type
      * @return
      */
-    Response put(String uri, InputStream inputStream, String contentType) throws CouchDBException;
+    Response put(String uri, InputStream inputStream, String contentType, long length) throws CouchDBException;
 
     /**
      * Send a POST request to the given URI with
@@ -105,5 +105,10 @@ public interface Server
      *
      */
     void setCredentials(AuthScope authScope, Credentials credentials);
+    
+    /**
+     * Safely shuts down this server instance by closing all resources including HTTP connections.
+     */
+    void shutDown();
 
 }

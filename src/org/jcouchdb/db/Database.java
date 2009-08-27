@@ -16,10 +16,10 @@ import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
 import org.jcouchdb.util.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.svenson.JSON;
 import org.svenson.JSONParser;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 /**
  * Contains the main interface of working with a couchdb database
@@ -886,12 +886,12 @@ public class Database
      * @param is                Input stream providing the binary data.
      * @return new revision
      */
-    public String createAttachment(String docId, String revision, String attachmentId, String contentType, InputStream is)
+    public String createAttachment(String docId, String revision, String attachmentId, String contentType, InputStream is, long length)
     {
         Response resp = null;
         try
         {
-            resp = server.put(attachmentURI(docId, revision, attachmentId) , is, contentType);
+            resp = server.put(attachmentURI(docId, revision, attachmentId) , is, contentType, length);
 
             if (!resp.isOk())
             {
@@ -919,10 +919,10 @@ public class Database
      * @param is                data of the attachment
      * @return new revision
      */
-    public String updateAttachment(String docId, String revision, String attachmentId, String contentType , InputStream is)
+    public String updateAttachment(String docId, String revision, String attachmentId, String contentType , InputStream is, long length)
     {
         Assert.notNull(revision, "revision can't be null");
-        return createAttachment(docId, revision, attachmentId, contentType, is);
+        return createAttachment(docId, revision, attachmentId, contentType, is, length);
     }
     
     private String attachmentURI(String docId, String revision, String attachmentId)

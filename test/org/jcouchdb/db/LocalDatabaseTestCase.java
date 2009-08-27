@@ -31,7 +31,6 @@ import org.jcouchdb.document.ViewResult;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.svenson.JSON;
 
@@ -592,7 +591,8 @@ public class LocalDatabaseTestCase
         final String docId = "attachmentStreamingDoc";
         final String content = "Streaming test.";
         final String content2 = "Streaming test 2.";
-        String revision = db.createAttachment(docId, null, "test.txt", "text/plain", new ByteArrayInputStream(content.getBytes()));
+        byte[] data = content.getBytes();
+        String revision = db.createAttachment(docId, null, "test.txt", "text/plain", new ByteArrayInputStream(data), data.length);
         assertThat(revision.length(), is(greaterThan(0)));
         
         Response resp = db.getAttachmentResponse(docId, "test.txt");
@@ -600,7 +600,8 @@ public class LocalDatabaseTestCase
         assertThat(new String(IOUtils.toByteArray(is)), is(content));
         resp.destroy();
         
-        revision = db.updateAttachment(docId, revision, "test.txt", "text/plain", new ByteArrayInputStream(content2.getBytes()));
+        byte[] data2 = content2.getBytes();
+        revision = db.updateAttachment(docId, revision, "test.txt", "text/plain", new ByteArrayInputStream(data2), data2.length);
             
         resp = db.getAttachmentResponse(docId, "test.txt");
         is = resp.getInputStream();
