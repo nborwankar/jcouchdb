@@ -4,9 +4,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.jcouchdb.exception.CouchDBException;
 import org.svenson.JSON;
+import org.svenson.JSONParser;
 
 /**
  * Used to pass query options to view queries.
@@ -21,12 +23,14 @@ import org.svenson.JSON;
  * @author shelmberger
  *
  */
-public class Options extends HashMap<String, Object>
+public class Options
 {
     private static final long serialVersionUID = -4025495141211906568L;
 
     private JSON optionsJSON = new JSON();
 
+    private Map<String, Object> content = new HashMap<String, Object>();
+    
     public Options()
     {
 
@@ -34,7 +38,7 @@ public class Options extends HashMap<String, Object>
 
     public Options(Map<String,String> map)
     {
-        putAll(map);
+        content.putAll(map);
     }
 
     /**
@@ -46,22 +50,28 @@ public class Options extends HashMap<String, Object>
     {
         if (options != null)
         {
-            for (Map.Entry<String, Object> e : options.entrySet())
+            for (String key : options.keys())
             {
-                put(e.getKey(),e.getValue());
+                putUnencoded(key,options.get(key));
             }
         }
     }
 
     public Options(String key, Object value)
     {
-        put(key, value);
+        putUnencoded(key, value);
     }
 
-    @Override
     public Options put(String key, Object value)
     {
-        super.put(key, value);
+        String json = optionsJSON.forValue(value);
+        content.put(key, json);
+        return this;
+    }
+
+    public Options putUnencoded(String key, Object value)
+    {
+        content.put(key, value);
         return this;
     }
 
@@ -77,7 +87,7 @@ public class Options extends HashMap<String, Object>
 
     public Options startKeyDocId(String docId)
     {
-        return put("startkey_docid", docId);
+        return putUnencoded("startkey_docid", docId);
     }
 
     public Options endKey(Object key)
@@ -87,37 +97,37 @@ public class Options extends HashMap<String, Object>
 
     public Options limit(int limit)
     {
-        return put("limit", limit);
+        return putUnencoded("limit", limit);
     }
 
     public Options update(boolean update)
     {
-        return put("update",update);
+        return putUnencoded("update",update);
     }
 
     public Options descending(boolean update)
     {
-        return put("descending",update);
+        return putUnencoded("descending",update);
     }
 
     public Options skip(int skip)
     {
-        return put("skip",skip);
+        return putUnencoded("skip",skip);
     }
 
     public Options group(boolean group)
     {
-        return put("group",group);
+        return putUnencoded("group",group);
     }
 
     public Options reduce(boolean reduce)
     {
-        return put("reduce",reduce);
+        return putUnencoded("reduce",reduce);
     }
 
     public Options includeDocs(boolean includeDocs)
     {
-        return put("include_docs",includeDocs);
+        return putUnencoded("include_docs",includeDocs);
     }
 
     public String toQuery()
@@ -128,16 +138,14 @@ public class Options extends HashMap<String, Object>
         boolean first = true;
         try
         {
-            for (Map.Entry<String, Object> e : entrySet())
+            for (String key : keys())
             {
                 if (!first)
                 {
                     sb.append("&");
                 }
-                sb.append(e.getKey()).append("=");
-                String json = optionsJSON.forValue(e.getValue());
-
-                sb.append(URLEncoder.encode(json, "UTF-8"));
+                sb.append(key).append("=");
+                sb.append(URLEncoder.encode(get(key).toString(), "UTF-8"));
                 first = false;
             }
             if (sb.length() <= 1)
@@ -155,6 +163,11 @@ public class Options extends HashMap<String, Object>
         }
     }
 
+    public Object get(String key)
+    {
+        return content.get(key);
+    }
+
     /**
      * Can be imported statically to have a syntax a la <code>option().count(1);</code>.
      * @return new Option instance
@@ -163,4 +176,10 @@ public class Options extends HashMap<String, Object>
     {
         return new Options();
     }
+    
+    public Set<String> keys()
+    {
+        return content.keySet();
+    }
+    
 }

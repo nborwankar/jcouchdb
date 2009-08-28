@@ -29,6 +29,10 @@ public class OptionsTestCase
         assertThat(query, startsWith("?"));
         assertThat(query, containsString("foo=1"));
         assertThat(query, containsString("bar=%5B%5D"));
-    }
 
+        query = new Options().startKeyDocId("bar").toQuery();
+        log.debug(query);
+        assertThat(query, startsWith("?"));
+        assertThat(query, containsString("startkey_docid=bar"));
+    }
 }
