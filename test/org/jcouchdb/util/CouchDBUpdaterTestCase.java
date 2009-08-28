@@ -1,6 +1,7 @@
 package org.jcouchdb.util;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -33,10 +34,8 @@ public class CouchDBUpdaterTestCase
 
         assertThat(docs,is(notNullValue()));
         assertThat(docs.size(), is(2));
-        assertThat(docs.get(0).getId(),is("_design/view1"));
-        assertThat(docs.get(1).getId(),is("_design/view2/sub"));
-
-
+        
+        assertThat(docs.get(0).getId(),anyOf( is("_design/view1"), is("_design/view2/sub")));
+        assertThat(docs.get(1).getId(),anyOf( is("_design/view1"), is("_design/view2/sub")));
     }
-
 }
