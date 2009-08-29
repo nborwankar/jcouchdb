@@ -95,6 +95,11 @@ public class Options
         return put("endkey",key);
     }
 
+    public Options endKeyDocId(String docId)
+    {
+        return putUnencoded("endkey_docid", docId);
+    }
+    
     public Options limit(int limit)
     {
         return putUnencoded("limit", limit);
