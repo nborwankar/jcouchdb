@@ -27,15 +27,7 @@ public class DataAccessException extends CouchDBException
             return "no response";
         }
 
-        String message = "code "+ response.getCode();
-
-//        final String content = response.getContentAsString();
-//        if (content != null && content.length() > 0)
-//        {
-//            message+=", content = "+content;
-//        }
-
-        return message;
+        return "code "+ response.getCode();
     }
 
     public Response getResponse()

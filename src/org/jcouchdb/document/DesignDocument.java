@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jcouchdb.util.Util;
+import org.svenson.JSONProperty;
 import org.svenson.JSONTypeHint;
 
 public class DesignDocument
@@ -19,6 +20,8 @@ public class DesignDocument
     private String language = "javascript";
 
     private Map<String, View> views = new HashMap<String, View>();
+    
+    private String validateOnDocUpdate;
 
     public DesignDocument(String id, String revision)
     {
@@ -54,6 +57,17 @@ public class DesignDocument
     public void setLanguage(String language)
     {
         this.language = language;
+    }
+
+    @JSONProperty(value = "validate_doc_update", ignoreIfNull = true)
+    public String getValidateOnDocUpdate()
+    {
+        return validateOnDocUpdate;
+    }
+
+    public void setValidateOnDocUpdate(String validateOnDocUpdate)
+    {
+        this.validateOnDocUpdate = validateOnDocUpdate;
     }
 
     @JSONTypeHint(View.class)
@@ -131,5 +145,4 @@ public class DesignDocument
     {
         return super.toString()+": views = "+views;
     }
-
 }

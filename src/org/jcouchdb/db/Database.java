@@ -13,6 +13,7 @@ import org.jcouchdb.document.DocumentInfo;
 import org.jcouchdb.document.ViewAndDocumentsResult;
 import org.jcouchdb.document.ViewResult;
 import org.jcouchdb.exception.DataAccessException;
+import org.jcouchdb.exception.DocumentValidationException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
 import org.jcouchdb.util.Assert;
@@ -474,6 +475,10 @@ public class Database
             if (resp.getCode() == 409)
             {
                 throw new UpdateConflictException("error creating document "+json + "in database '" + name + "'", resp);
+            }
+            else if (resp.getCode() == 403)
+            {
+                throw new DocumentValidationException(resp);
             }
             else if (!resp.isOk())
             {

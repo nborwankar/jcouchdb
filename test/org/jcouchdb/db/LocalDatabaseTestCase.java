@@ -1,6 +1,8 @@
 package org.jcouchdb.db;
 
+import static org.easymock.EasyMock.contains;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -31,6 +33,7 @@ import org.jcouchdb.document.ViewResult;
 import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
+import org.jcouchdb.exception.DocumentValidationException;
 import org.junit.Test;
 import org.svenson.JSON;
 
@@ -607,5 +610,47 @@ public class LocalDatabaseTestCase
         is = resp.getInputStream();
         assertThat(new String(IOUtils.toByteArray(is)), is(content2));
         resp.destroy();
+    }
+    
+    @Test
+    public void testValidation()
+    {
+        String fn = 
+                "function(newDoc, oldDoc, userCtx){\n" + 
+        		"  if (newDoc.validationTestField && newDoc.validationTestField !== '123') {\n" + 
+        		"    throw({'forbidden':'not 123'});\n" + 
+        		"  }\n" + 
+        		"}";
+        DesignDocument designDoc = new DesignDocument("validate_test");
+        designDoc.setValidateOnDocUpdate(fn);
+        
+        Database db = createDatabaseForTest();
+        
+        assertThat(designDoc.getRevision(), is(nullValue()));
+        db.createDocument(designDoc);
+        assertThat(designDoc.getRevision(), is(notNullValue()));
+        
+        BaseDocument doc = new BaseDocument();
+        doc.setProperty("validationTestField", "123");
+        
+        assertThat(doc.getRevision(), is(nullValue()));
+        db.createDocument(doc);
+        assertThat(doc.getRevision(), is(notNullValue()));
+        
+        doc.setProperty("validationTestField", "invalid");
+        
+        DocumentValidationException e = null;
+        try
+        {
+            db.updateDocument(doc);
+        }
+        catch(DocumentValidationException e2)
+        {
+            e = e2;
+        }
+        
+        assertThat(e, is(notNullValue()));
+        assertThat(e.getReason(), is("not 123"));
+        assertThat(e.getError(), is("forbidden"));
     }
 }
