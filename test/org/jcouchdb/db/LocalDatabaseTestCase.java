@@ -653,4 +653,28 @@ public class LocalDatabaseTestCase
         assertThat(e.getReason(), is("not 123"));
         assertThat(e.getError(), is("forbidden"));
     }
+    
+    @Test
+    @Ignore
+    public void thatHandlingHugeAttachmentsWorks()
+    {
+        Database db = createDatabaseForTest();
+        
+        BaseDocument doc = new BaseDocument();
+        db.createDocument(doc);
+        
+        long length = (long)(Runtime.getRuntime().maxMemory() * 1.1);
+        InputStream is = new SizedInputStreamMock((byte)'A', length);
+        db.createAttachment(doc.getId(), doc.getRevision(), "hugeAttachment.txt", "text/plain", is, length);
+        
+        doc = db.getDocument(BaseDocument.class, doc.getId());
+        
+        Map<String, Attachment> attachments = doc.getAttachments();
+        assertThat(attachments.size(), is(1));
+        Attachment attachment = attachments.get("hugeAttachment.txt");
+        assertThat(attachment, is(notNullValue()));
+        assertThat(attachment.getLength(), is(length));
+        assertThat(attachment.getContentType(), is("text/plain"));
+        assertThat(attachment.isStub(), is(true));
+    }
 }
