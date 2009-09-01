@@ -1,8 +1,6 @@
 package org.jcouchdb.db;
 
-import static org.easymock.EasyMock.contains;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -31,9 +29,10 @@ import org.jcouchdb.document.View;
 import org.jcouchdb.document.ViewAndDocumentsResult;
 import org.jcouchdb.document.ViewResult;
 import org.jcouchdb.exception.DataAccessException;
+import org.jcouchdb.exception.DocumentValidationException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
-import org.jcouchdb.exception.DocumentValidationException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.svenson.JSON;
 
