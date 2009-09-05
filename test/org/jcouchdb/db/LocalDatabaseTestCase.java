@@ -676,4 +676,46 @@ public class LocalDatabaseTestCase
         assertThat(attachment.getContentType(), is("text/plain"));
         assertThat(attachment.isStub(), is(true));
     }
+
+
+    @Test
+    public void thatBulkDeletionWorks()
+    {
+        Database db = createDatabaseForTest();
+        String[] ids = new String[] { "doc-1", "doc-2", "doc-3" };
+
+        List<Document> docs = new ArrayList<Document>();
+
+        for (String id : ids)
+        {
+            Document d = new FooDocument("value-" + id);
+            d.setId(id);
+            docs.add(d);
+        }
+
+        List<DocumentInfo> infos = db.bulkCreateDocuments(docs);
+        assertThat(infos.size(), is(3));
+        docs.clear();
+
+        for (String docid : ids)
+        {
+            docs.add(db.getDocument(FooDocument.class, docid));
+        }
+
+        infos = db.bulkDeleteDocuments(docs);
+        assertThat(infos.size(), is(3));
+
+        for (String docid : ids)
+        {
+            try
+            {
+                db.getDocument(FooDocument.class, docid);
+                assertThat("NotFoundException expected", true, is(false));
+            }
+            catch (NotFoundException nfe)
+            {
+                // expected
+            }
+        }
+    }
 }

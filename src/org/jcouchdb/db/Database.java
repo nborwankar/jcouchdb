@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.jcouchdb.document.AbstractViewResult;
+import org.jcouchdb.document.BaseDocument;
 import org.jcouchdb.document.DesignDocument;
+import org.jcouchdb.document.Document;
 import org.jcouchdb.document.DocumentHelper;
 import org.jcouchdb.document.DocumentInfo;
 import org.jcouchdb.document.ViewAndDocumentsResult;
@@ -269,15 +271,28 @@ public class Database
     }
 
     /**
+     * @param documents
+     * @return
+     */
+    public List<DocumentInfo> bulkCreateDocuments(List<? extends Document> documents)
+    {
+    	return this.bulkCreateDocuments(documents, false);
+    }
+    
+    /**
      * Bulk creates the given list of documents.
      * @param documents
      * @return
      */
-    public List<DocumentInfo> bulkCreateDocuments(List<?> documents)
+    public List<DocumentInfo> bulkCreateDocuments(List<?> documents, boolean allOrNothing)
     {
         Assert.notNull(documents, "documents cannot be null");
 
-        Map<String,List<?>> wrap = new HashMap<String, List<?>>();
+        Map<String,Object> wrap = new HashMap<String, Object>();
+        if(allOrNothing)
+        {
+        	wrap.put("all_or_nothing", true);
+        }
         wrap.put("docs", documents);
 
         for (Object doc : documents)
@@ -1023,5 +1038,71 @@ public class Database
             throw new DataAccessException("error getting attachment '" + attachmentId + "' of document '"+docId + "': ", resp);
         }
         return resp;
+    }
+
+
+    /**
+     * @param documents
+     * @return
+     */
+    public List<DocumentInfo> bulkDeleteDocuments(List<? extends Document> documents)
+    {
+        return this.bulkDeleteDocuments(documents, false);
+    }
+
+
+    /**
+     * Delete a set of documents.
+     * 
+     * @param documents
+     */
+    public List<DocumentInfo> bulkDeleteDocuments(List<? extends Document> documents,
+        boolean allOrNothing)
+    {
+        List<Document> docsToDelete = new ArrayList<Document>();
+        for (Document doc : documents)
+        {
+            BaseDocument proxy  = new BaseDocument();
+            proxy.setId(doc.getId());
+            proxy.setRevision(doc.getRevision());
+            proxy.setProperty("_deleted", true);
+            
+            for (DatabaseEventHandler eventHandler : eventHandlers)
+            {
+                try
+                {
+                    eventHandler.deletingDocument(this, proxy.getId(), proxy.getRevision());
+                }
+                catch (Exception e)
+                {
+                    throw new DatabaseEventException(e);
+                }
+            }
+            
+            docsToDelete.add(proxy);
+        }
+        
+        
+        List<DocumentInfo> documentInfos = this.bulkCreateDocuments(docsToDelete, allOrNothing);
+        
+        for (DocumentInfo info : documentInfos)
+        {
+            if (info.getError() != null)
+            {
+                for (DatabaseEventHandler eventHandler : eventHandlers)
+                {
+                    try
+                    {               
+                        eventHandler.deletedDocument(this, info.getId(), info.getRevision(), null);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new DatabaseEventException(e);
+                    }
+                }
+            }
+        }
+        
+        return documentInfos;
     }
 }
