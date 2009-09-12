@@ -35,7 +35,7 @@ public class Response
 
     private InputStreamSource inputStreamSource;
 
-	private byte[] content;
+    private byte[] content;
 
     public Response(int code, String s)
     {
@@ -88,29 +88,29 @@ public class Response
 
     public byte[] getContent()
     {
-		if (content == null)
-		{
-			try
-			{
-				content = IOUtils.toByteArray(inputStream);
-			}
-			catch (IOException e)
-			{
-				throw new DataAccessException("error reading content from response", null);
-			}
-			finally
-			{
-				try
-				{
-					inputStream.close();
-				}
-				catch (IOException e)
-				{
-	                throw new DataAccessException("error closing input stream of response", null);
-				}
-			}
-		}
-		return content;
+        if (content == null)
+        {
+            try
+            {
+                content = IOUtils.toByteArray(inputStream);
+            }
+            catch (IOException e)
+            {
+                throw new DataAccessException("error reading content from response", null);
+            }
+            finally
+            {
+                try
+                {
+                    inputStream.close();
+                }
+                catch (IOException e)
+                {
+                    throw new DataAccessException("error closing input stream of response", null);
+                }
+            }
+        }
+        return content;
     }
 
 
@@ -202,16 +202,16 @@ public class Response
 
     public void destroy()
     {
-		if (inputStream != null)
-		{
-			try
-			{
-				inputStream.close();
-			}
-			catch (IOException e)
-			{
-				log.warn("error trying to close the input stream", e);
-			}
-		}
-	}
+        if (inputStream != null)
+        {
+            try
+            {
+                inputStream.close();
+            }
+            catch (IOException e)
+            {
+                log.warn("error trying to close the input stream", e);
+            }
+        }
+    }
 }
