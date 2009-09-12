@@ -1,11 +1,5 @@
 package org.jcouchdb.db;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -16,9 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.svenson.JSONParser;
 import org.svenson.tokenize.InputStreamSource;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Encapsulates a couchdb server response with error code and received body.
- * 
+ *
  * @author shelmberger
  */
 public class Response
@@ -35,6 +35,7 @@ public class Response
 
     private InputStreamSource inputStreamSource;
 
+	private byte[] content;
 
     public Response(int code, String s)
     {
@@ -51,7 +52,7 @@ public class Response
     {
         this(response.getStatusLine().getStatusCode(), response.getEntity().getContent(), response.getAllHeaders());
     }
-        
+
     public Response(int code, InputStream stream, Header[] headers)
     {
         Assert.notNull(stream, "stream can't be null");
@@ -87,14 +88,29 @@ public class Response
 
     public byte[] getContent()
     {
-        try
-        {
-            return IOUtils.toByteArray(inputStream);
-        }
-        catch (IOException e)
-        {
-            throw new DataAccessException("error reading content from response", null);
-        }
+		if (content == null)
+		{
+			try
+			{
+				content = IOUtils.toByteArray(inputStream);
+			}
+			catch (IOException e)
+			{
+				throw new DataAccessException("error reading content from response", null);
+			}
+			finally
+			{
+				try
+				{
+					inputStream.close();
+				}
+				catch (IOException e)
+				{
+	                throw new DataAccessException("error closing input stream of response", null);
+				}
+			}
+		}
+		return content;
     }
 
 
@@ -110,7 +126,7 @@ public class Response
 
     /**
      * Returns the contents of the response as List
-     * 
+     *
      * @return
      */
     public List getContentAsList()
@@ -122,7 +138,7 @@ public class Response
 
     /**
      * Returns the contents of the response as Map
-     * 
+     *
      * @return
      */
     public Map getContentAsMap()
@@ -134,7 +150,7 @@ public class Response
 
     /**
      * Returns the contents of the response as bean of the given type.
-     * 
+     *
      * @return
      */
     public <T> T getContentAsBean(Class<T> cls)
@@ -168,7 +184,7 @@ public class Response
 
     /**
      * Returns <code>true</code> if the response code is between 200 and 299
-     * 
+     *
      * @return
      */
     public boolean isOk()
@@ -186,6 +202,16 @@ public class Response
 
     public void destroy()
     {
-        
-    }
+		if (inputStream != null)
+		{
+			try
+			{
+				inputStream.close();
+			}
+			catch (IOException e)
+			{
+				log.warn("error trying to close the input stream", e);
+			}
+		}
+	}
 }
