@@ -17,8 +17,8 @@ public abstract class AbstractCouchDBUpdater
     protected static final String REDUCE_SUFFIX = ".reduce.js";
     protected static final String MAP_SUFFIX = ".map.js";
     protected static Logger log = LoggerFactory.getLogger(CouchDBUpdater.class);
-    private Database database;
-    private boolean createDatabase = true;
+    protected Database database;
+    protected boolean createDatabase = true;
 
     protected abstract List<DesignDocument> readDesignDocuments() throws IOException;
 
