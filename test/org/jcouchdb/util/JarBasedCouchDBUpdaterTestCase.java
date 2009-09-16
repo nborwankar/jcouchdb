@@ -50,7 +50,7 @@ public class JarBasedCouchDBUpdaterTestCase
     public void testFindClassPathDir()
     {
         JarBasedCouchDBUpdater couchDBUpdater = new JarBasedCouchDBUpdater();
-        couchDBUpdater.setJarFilePattern(".*/svenson\\.jar");
+        couchDBUpdater.setJarFilePattern(".*/jcouchdb[0-9\\.]*jar");
         couchDBUpdater.setPathInsideJar("org/jcouchdb");
         
         File f = couchDBUpdater.findJarFileOrSourceDirectory();
