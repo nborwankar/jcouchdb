@@ -39,11 +39,17 @@ public class JarBasedCouchDBUpdaterTestCase
         
         assertThat(f.isDirectory(), is(false));
 
-        String cdir = new File(".").getAbsolutePath();
-        cdir = cdir.substring(0, cdir.length()-1);
+        String cdir = getCurrentDir();
         String path = f.getPath();
         assertThat(path.endsWith("easymock.jar"), is(true));
         assertThat(path.startsWith(cdir), is(true));
+    }
+
+    private String getCurrentDir()
+    {
+        String cdir = new File(".").getAbsolutePath();
+        cdir = cdir.substring(0, cdir.length()-1);
+        return cdir;
     }
 
     @Test
@@ -57,8 +63,7 @@ public class JarBasedCouchDBUpdaterTestCase
 
         assertThat(f.isDirectory(), is(true));
         
-        String cdir = new File(".").getAbsolutePath();
-        cdir = cdir.substring(0, cdir.length()-1);
+        String cdir = getCurrentDir();
         String path = f.getPath();
         assertThat(path.startsWith(cdir), is(true));
     }
