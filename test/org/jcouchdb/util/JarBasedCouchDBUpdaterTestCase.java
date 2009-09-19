@@ -67,4 +67,5 @@ public class JarBasedCouchDBUpdaterTestCase
         String path = f.getPath();
         assertThat(path.startsWith(cdir), is(true));
     }
+    
 }

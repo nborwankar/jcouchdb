@@ -1,5 +1,6 @@
 package org.jcouchdb.db;
 
+import static org.easymock.EasyMock.matches;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.greaterThan;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -36,6 +38,8 @@ import org.jcouchdb.exception.UpdateConflictException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.svenson.JSON;
+import org.svenson.JSONParser;
+import org.svenson.JSONProperty;
 
 /**
  * Runs tests against a real couchdb database running on localhost
@@ -55,6 +59,8 @@ public class LocalDatabaseTestCase
     private static final String MY_FOO_DOC_ID = "myFoo/DocId";
 
     private static final String BY_VALUE_FUNCTION = "function(doc) { if (doc.type == 'foo') { emit(doc.value,doc); }  }";
+
+    private static final String BY_VALUE_TO_NULL_FUNCTION = "function(doc) { if (doc.type == 'foo') { emit(doc.value,null); }  }";
 
     private static final String COMPLEX_KEY_FUNCTION = "function(doc) { if (doc.type == 'foo') { emit([1,{\"value\":doc.value}],doc); }  }";
 
@@ -738,5 +744,60 @@ public class LocalDatabaseTestCase
             assertThat(stats.get("couchdb").size(), is(1));
             assertThat((Map)stats.get("couchdb").get("request_time"), is(any(Map.class)));
         }
+    }
+
+    @Test
+    public void thatShowsWorks()
+    {
+        DesignDocument doc = new DesignDocument("showDoc");
+        doc.addShowFunction("foo", "function(doc,req) { return {body: '[' + doc.value + ']'}; }");
+        
+        Database db = createDatabaseForTest();
+        db.createDocument(doc);
+
+        String content = db.queryShow("showDoc/foo", MY_FOO_DOC_ID, null).getContentAsString();
+
+        assertThat(content, is("[changed]"));
+    }
+
+    @Test
+    public void thatViewsWorks()
+    {
+        DesignDocument doc = new DesignDocument("listDoc");
+        
+        doc.addView("foos-by-value", new View(BY_VALUE_TO_NULL_FUNCTION));
+        
+        doc.addListFunction("foo", "function(head, row, req, row_info) {\n" + 
+        		"  if (head) {\n" + 
+        		"    return '{\"head\": ' + JSON.stringify(head) + ',\"rows\":[';" + 
+        		"  } else if (row) {\n" + 
+                "    return (row_info.row_number == 0 ? '' : ',') + JSON.stringify(row);\n" + 
+        		"  } else {\n" + 
+        		"    return ']}';\n" + 
+        		"  }\n" + 
+        		"}\n");
+        
+        Database db = createDatabaseForTest();
+        db.createDocument(doc);
+
+        Response response = db.queryList("listDoc/foo", "foos-by-value", new Options().key("changed"));
+        
+        JSONParser parser = new JSONParser();
+        parser.addTypeHint(".rows[]", ValueRow.class);
+        
+        response.setParser(parser);
+        Map m = response.getContentAsMap();
+ 
+        Map head = (Map)m.get("head");
+        assertThat(head, is(notNullValue()));
+        assertThat((Long)head.get("total_rows"), is(10L));
+        assertThat((Long)head.get("offset"), is(2L));
+
+        List<ValueRow<String>> rows = (List<ValueRow<String>>) m.get("rows");
+        assertThat(rows.size(), is(1));
+        ValueRow<String> row = rows.get(0);
+        assertThat(row.getId(),is(MY_FOO_DOC_ID));
+        assertThat((String)row.getKey(),is("changed"));
+        
     }
 }

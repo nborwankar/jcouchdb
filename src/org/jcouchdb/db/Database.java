@@ -32,8 +32,13 @@ import org.svenson.JSONParser;
  */
 public class Database
 {
-    private static final String VIEW_DOCUMENT_PREFIX = "_design/";
-    private static final String VIEW_DOCUMENT_INFIX = "/_view/";
+    private static final String DESIGN_DOCUMENT_PREFIX = "_design/";
+    
+    private static final String VIEW_DOCUMENT_INFIX = "view";
+
+    private static final String LIST_DOCUMENT_INFIX = "list";
+
+    private static final String SHOW_DOCUMENT_INFIX = "show";
 
     private JSON jsonGenerator = new JSON();
 
@@ -582,14 +587,18 @@ public class Database
     
     private String viewURIFromName(String viewName)
     {
+        return getDesignURIFromNameAndInfix(viewName, VIEW_DOCUMENT_INFIX);
+    }
+    
+    private String getDesignURIFromNameAndInfix(String viewName, String infix)
+    {
         int slashPos = viewName.indexOf("/");
         if (slashPos < 0)
         {
-            throw new IllegalArgumentException("viewName must contain a slash separating the design doc name from the view name");
+            throw new IllegalArgumentException("viewName must contain a slash separating the design doc name from the " + infix + " name");
         }
-        return VIEW_DOCUMENT_PREFIX + escapeSlashes(viewName.substring(0,slashPos)) + VIEW_DOCUMENT_INFIX + escapeSlashes(viewName.substring(slashPos + 1));
+        return DESIGN_DOCUMENT_PREFIX + escapeSlashes(viewName.substring(0,slashPos)) + "/_" + infix + "/" + escapeSlashes(viewName.substring(slashPos + 1));
     }
-
 
     /**
      * Queries the view and the documents with the given name and converts the received views and documents.
@@ -1104,5 +1113,45 @@ public class Database
         }
         
         return documentInfos;
+    }
+    
+    /**
+     * Query the given show function with the given doc id 
+     * 
+     * @param showName  Name of list including design doc (e.g. "designDocId/showName")
+     * @param docId     document id 
+     * @param options
+     * @return
+     */
+    public Response queryShow(String showName, String docId, Options options)
+    {
+        String uri = "/" + name + "/" + getDesignURIFromNameAndInfix(showName, SHOW_DOCUMENT_INFIX) + "/" + escapeSlashes(docId);
+        
+        if (options != null)
+        {
+            uri += options.toQuery();
+        }
+        
+        return server.get(uri);
+    }
+
+    /**
+     * Queries the specified list function with the specified view.
+     * 
+     * @param listName  Name of list including design doc (e.g. "designDocId/viewName")  
+     * @param viewName  view name without design document
+     * @param options   
+     * @return
+     */
+    public Response queryList(String listName, String viewName, Options options)
+    {
+        String uri = "/" + name + "/" + getDesignURIFromNameAndInfix(listName, LIST_DOCUMENT_INFIX) + "/" + escapeSlashes(viewName);
+        
+        if (options != null)
+        {
+            uri += options.toQuery();
+        }
+        
+        return server.get(uri);
     }
 }

@@ -21,6 +21,10 @@ public class DesignDocument
 
     private Map<String, View> views = new HashMap<String, View>();
     
+    private Map<String, String> shows;
+
+    private Map<String, String> lists;
+    
     private String validateOnDocUpdate;
 
     public DesignDocument(String id, String revision)
@@ -144,5 +148,55 @@ public class DesignDocument
     public String toString()
     {
         return super.toString()+": views = "+views;
+    }
+    
+    @JSONProperty(value = "shows", ignoreIfNull = true)
+    public void setShowFunctions(Map<String, String> shows)
+    {
+        this.shows = shows;
+    }
+    
+    public Map<String, String> getShowFunctions()
+    {
+        return shows;
+    }
+    
+    @JSONProperty(value = "lists", ignoreIfNull = true)
+    public void setListFunctions(Map<String, String> lists)
+    {
+        this.lists = lists;
+    }
+
+    public Map<String, String> getListFunctions()
+    {
+        return lists;
+    }
+
+    /**
+     * Adds a show function to the design document
+     *
+     */
+    public void addShowFunction(String name, String showFn)
+    {
+        if (shows == null)
+        {
+            shows = new HashMap<String, String>();
+        }
+        
+        shows.put(name, showFn);
+    }
+
+    /**
+     * Adds a show function to the design document
+     *
+     */
+    public void addListFunction(String name, String listFn)
+    {
+        if (lists == null)
+        {
+            lists = new HashMap<String, String>();
+        }
+        
+        lists.put(name, listFn);
     }
 }
