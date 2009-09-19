@@ -1,6 +1,7 @@
 package org.jcouchdb.db;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -716,6 +717,26 @@ public class LocalDatabaseTestCase
             {
                 // expected
             }
+        }
+    }
+    
+    @Test()
+    public void testThatStatsWorks()
+    {
+        Database db = createDatabaseForTest();
+        {
+            Map<String,Map<String,Object>> stats = db.getServer().getStats(null);
+
+            assertThat(stats.size(), is(greaterThan(1)));
+            assertThat(stats.get("couchdb"), is(any(Map.class)));
+        }
+
+        {
+            Map<String,Map<String,Object>> stats = db.getServer().getStats("/couchdb/request_time");
+
+            assertThat(stats.size(), is(1));
+            assertThat(stats.get("couchdb").size(), is(1));
+            assertThat((Map)stats.get("couchdb").get("request_time"), is(any(Map.class)));
         }
     }
 }

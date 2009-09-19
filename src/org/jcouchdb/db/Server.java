@@ -2,9 +2,10 @@ package org.jcouchdb.db;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.http.auth.Credentials;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
 import org.jcouchdb.exception.CouchDBException;
 
 /**
@@ -111,4 +112,11 @@ public interface Server
      */
     void shutDown();
 
+    /**
+     * Get couchdb runtime statistics.
+     * 
+     * @param filter    filter for the stats (e.g. "/couchdb/request_time") or <code>null</code> in which case the output will be unfiltered.
+     * @return  stats map
+     */
+    Map<String,Map<String,Object>> getStats(String filter);
 }

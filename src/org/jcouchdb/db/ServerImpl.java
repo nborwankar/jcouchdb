@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthScope;
@@ -33,6 +33,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.jcouchdb.document.BaseDocument;
 import org.jcouchdb.exception.CouchDBException;
 import org.jcouchdb.util.Assert;
 import org.jcouchdb.util.ExceptionWrapper;
@@ -383,5 +384,21 @@ public class ServerImpl
         }
         httpClient = null;
         clientConnectionManager = null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Map<String,Map<String,Object>> getStats(String filter)
+    {
+        String uri = "/_stats";
+        
+        if (filter != null)
+        {
+            uri += filter;
+        }
+        
+        Response resp = get(uri);
+        return resp.getContentAsMap();
     }
 }
