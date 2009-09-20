@@ -125,6 +125,6 @@ extends AbstractCouchDBUpdater
             }
         }
         
-        return null;
+        throw new IllegalStateException("Could not find jar or source dir in classpath " + classpath);
     }
 }

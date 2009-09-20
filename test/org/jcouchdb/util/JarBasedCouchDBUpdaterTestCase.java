@@ -1,6 +1,5 @@
 package org.jcouchdb.util;
 
-import static org.easymock.EasyMock.endsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -32,24 +31,16 @@ public class JarBasedCouchDBUpdaterTestCase
     public void testFindClassPathJar()
     {
         JarBasedCouchDBUpdater couchDBUpdater = new JarBasedCouchDBUpdater();
-        couchDBUpdater.setJarFilePattern(".*/easymock\\.jar");
+        String easyMockRegEx = ".*/easymock[0-9\\.-]*\\.jar";
+        couchDBUpdater.setJarFilePattern(easyMockRegEx);
         couchDBUpdater.setPathInsideJar("org/easymock");
         
         File f = couchDBUpdater.findJarFileOrSourceDirectory();
         
         assertThat(f.isDirectory(), is(false));
 
-        String cdir = getCurrentDir();
         String path = f.getPath();
-        assertThat(path.endsWith("easymock.jar"), is(true));
-        assertThat(path.startsWith(cdir), is(true));
-    }
-
-    private String getCurrentDir()
-    {
-        String cdir = new File(".").getAbsolutePath();
-        cdir = cdir.substring(0, cdir.length()-1);
-        return cdir;
+        assertThat(path.matches(easyMockRegEx), is(true));
     }
 
     @Test
@@ -60,12 +51,7 @@ public class JarBasedCouchDBUpdaterTestCase
         couchDBUpdater.setPathInsideJar("org/jcouchdb");
         
         File f = couchDBUpdater.findJarFileOrSourceDirectory();
-
         assertThat(f.isDirectory(), is(true));
-        
-        String cdir = getCurrentDir();
-        String path = f.getPath();
-        assertThat(path.startsWith(cdir), is(true));
     }
     
 }
