@@ -81,7 +81,7 @@
 				<include name="**/*"/>
 				<exclude name="bin/org/**/*"/>
 				<exclude name="bin/log4j.properties"/>
-				<exclude name="lib/compile/spring*.jar"/>
+                <exclude name="target/**/*"/>
 				<exclude name="reports/**/*"/>
 			</zipfileset>
 		</zip>
@@ -93,6 +93,7 @@
                 <exclude name="target/**/*"/>
                 <exclude name="synch*.sh"/>
             	<exclude name="lib/**/*"/>
+				<exclude name="reports/**/*"/>
             </zipfileset>
         </zip>
 	</target>
