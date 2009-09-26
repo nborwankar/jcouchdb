@@ -1,6 +1,17 @@
 jcouchdb JSON library change log:
 =================================
 
+Changes from 0.9.1-1 to 0.9.1-2:
+ * Added JarBasedCouchDBUpdater that can update views from a directory or jar in the classpath
+ * support for _show and _list
+ * support for _stats
+ * now uses slf4j as logging API
+ * switched to httpcomments http-client 4.0 from the old commons-httpclient-3.x
+ * now available via Maven 
+ * bugfix: added DocumentValidationException to access reason of validation errors.
+ * bugfix: don't escape startkey_docid, endkey_docid anymore
+ * support for all_or_nothing bulk creation, support for bulk delete. Thanks to Daniel Trümper for submitting the patches
+ 
 Changes from 0.9.0-1 to 0.9.0-2:
 
  * Streaming attachment handling
