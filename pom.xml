@@ -183,10 +183,9 @@
 
     <distributionManagement>
         <repository>
-          <id>ssh-repository</id>
-          <url>scpexe://mvnrsync@fforw.de/m2repo/</url>
+          <id>fforw-de-ssh-repository</id>
+          <url>scpexe://fforw.de/home/mvnrsync/m2repo/releases</url>
         </repository>
     </distributionManagement>
-
 
 </project>
