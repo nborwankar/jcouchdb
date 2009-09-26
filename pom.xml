@@ -181,4 +181,12 @@
 
     </dependencies>
 
+    <distributionManagement>
+        <repository>
+          <id>ssh-repository</id>
+          <url>scpexe://mvnrsync@fforw.de/m2repo/</url>
+        </repository>
+    </distributionManagement>
+
+
 </project>
