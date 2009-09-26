@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.ZipInputStream;
 
+import org.jcouchdb.db.LocalDatabaseTestCase;
 import org.jcouchdb.db.Server;
 import org.jcouchdb.db.ServerImpl;
 import org.junit.BeforeClass;
@@ -23,7 +24,7 @@ public class CouchDBDumperTestCase
     public static void init() throws IOException
     {
         file = File.createTempFile("jcouchdb_dump", ".zip");
-        server = new ServerImpl("localhost");
+        server = LocalDatabaseTestCase.createDatabaseForTest().getServer();
 
         if (server.listDatabases().contains("ffwde_copy"))
         {
