@@ -114,6 +114,11 @@ public class Database
     {
         return server;
     }
+    
+    public void setJsonGenerator(JSON jsonGenerator)
+    {
+        this.jsonGenerator = jsonGenerator;
+    }
 
     public List<DatabaseEventHandler> getEventHandlers()
     {
