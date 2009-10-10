@@ -32,4 +32,21 @@ public class Util
             return o.hashCode();
         }
     }
+    
+    public static boolean hasText(String s)
+    {
+        if (s == null || s.length() == 0)
+        {
+            return false;
+        }
+        
+        for (int i=0; i < s.length(); i++)
+        {
+            if (!Character.isWhitespace(s.charAt(i)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

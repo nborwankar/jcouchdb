@@ -818,4 +818,17 @@ public class LocalDatabaseTestCase
         assertThat((String)row.getKey(),is("changed"));
         
     }
+
+    public static void deleteDocIfExists(Database db, String docId)
+    {
+        try
+        {
+            BaseDocument doc = db.getDocument(BaseDocument.class, docId);
+            db.delete(doc);
+        }
+        catch(NotFoundException e)
+        {
+            // ignore
+        }
+    }
 }
