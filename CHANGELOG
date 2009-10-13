@@ -1,6 +1,13 @@
 jcouchdb JSON library change log:
 =================================
 
+Changes from 0.9.1-2 to 0.10.0-1:
+
+ * compatibility with couchdb 0.10.0: attachment revpos, new list function format
+ * add ResourceSync to sync folders on disk with document attachments, MediaTypeUtil to determine media type by name.
+ * add Database.setJsonGenerator(JSON) to suport configuration of JSON output
+ * minor bugfixes
+
 Changes from 0.9.1-1 to 0.9.1-2:
  * Added JarBasedCouchDBUpdater that can update views from a directory or jar in the classpath
  * support for _show and _list
