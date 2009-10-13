@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerPNames;
 import org.apache.http.conn.params.ConnPerRouteBean;
@@ -103,6 +104,7 @@ public class ServerImpl
                     HttpParams params = new BasicHttpParams();
                     HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
                     HttpProtocolParams.setUseExpectContinue(params, false);
+                    HttpClientParams.setRedirecting(params, false);
                     params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(maxConnectionsPerRoute));
             
                     params.setParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, maxTotalConnections);

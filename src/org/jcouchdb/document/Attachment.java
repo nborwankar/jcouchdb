@@ -20,7 +20,8 @@ public class Attachment
     private String contentType, data;
     private long length;
     private boolean stub;
-
+    private String revPos;
+    
     public Attachment()
     {
 
@@ -100,4 +101,25 @@ public class Attachment
     {
         this.stub = stub;
     }
+
+    /**
+     * Returns the revision position of this attachment that will change if the attachment gets updated.
+     * @param revPos
+     */
+    public String getRevPos()
+    {
+        return revPos;
+    }
+
+    /**
+     * Sets the revision position of this attachment.
+     * @param revPos
+     */
+    @JSONProperty("revpos")
+    public void setRevPos(String revPos)
+    {
+        this.revPos = revPos;
+    }
+    
+    
 }

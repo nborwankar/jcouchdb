@@ -52,6 +52,12 @@ public class DesignDocument
     {
         super.setId(extendId(id));
     }
+    
+    @Override
+    public String getId()
+    {
+        return super.getId();//.replace("%2F", "/");
+    }
 
     public String getLanguage()
     {

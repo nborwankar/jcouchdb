@@ -225,7 +225,12 @@ public class Database
         Assert.notNull(cls, "class cannot be null");
         Assert.notNull(docId, "document id cannot be null");
 
-        String uri = "/" + name + "/" + escapeSlashes(docId);
+        if (!docId.startsWith("_design/"))
+        {
+            docId = escapeSlashes(docId);
+        }
+        
+        String uri = "/" + name + "/" + (docId);
         if (revision != null)
         {
             uri += "?rev="+revision;
@@ -602,7 +607,7 @@ public class Database
         {
             throw new IllegalArgumentException("viewName must contain a slash separating the design doc name from the " + infix + " name");
         }
-        return DESIGN_DOCUMENT_PREFIX + escapeSlashes(viewName.substring(0,slashPos)) + "/_" + infix + "/" + escapeSlashes(viewName.substring(slashPos + 1));
+        return DESIGN_DOCUMENT_PREFIX + (viewName.substring(0,slashPos)) + "/_" + infix + "/" + (viewName.substring(slashPos + 1));
     }
 
     /**

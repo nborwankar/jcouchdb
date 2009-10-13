@@ -1,6 +1,5 @@
 package org.jcouchdb.db;
 
-import static org.easymock.EasyMock.matches;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.greaterThan;
@@ -19,7 +18,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -37,11 +35,12 @@ import org.jcouchdb.exception.DataAccessException;
 import org.jcouchdb.exception.DocumentValidationException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 import org.svenson.JSON;
 import org.svenson.JSONParser;
-import org.svenson.JSONProperty;
 
 /**
  * Runs tests against a real couchdb database running on localhost
@@ -65,8 +64,8 @@ public class LocalDatabaseTestCase
     private static final String BY_VALUE_TO_NULL_FUNCTION = "function(doc) { if (doc.type == 'foo') { emit(doc.value,null); }  }";
 
     private static final String COMPLEX_KEY_FUNCTION = "function(doc) { if (doc.type == 'foo') { emit([1,{\"value\":doc.value}],doc); }  }";
-
-    protected static Logger log = Logger.getLogger(LocalDatabaseTestCase.class);
+    
+    private static org.slf4j.Logger log = LoggerFactory.getLogger(LocalDatabaseTestCase.class);
 
     public static Database createDatabaseForTest()
     {
@@ -765,36 +764,39 @@ public class LocalDatabaseTestCase
     @Test
     public void thatViewsWorks() throws FileNotFoundException, IOException
     {
-        DesignDocument doc = new DesignDocument("listDoc");
-        
-        doc.addView("foos-by-value", new View(BY_VALUE_TO_NULL_FUNCTION));
-        
-        String jsonFn = IOUtils.toString(new FileReader("test/org/jcouchdb/db/test-files/json2.js"));
-        
-        doc.addListFunction("foo", "function(head, row, req, row_info) {\n" + 
-                jsonFn +
-        		"  if (head) {\n" + 
-        		"    return '{\"head\": ' + JSON.stringify(head) + ',\"rows\":[';" + 
-        		"  } else if (row) {\n" + 
-                "    return (row_info.row_number == 0 ? '' : ',') + JSON.stringify(row);\n" + 
-        		"  } else {\n" + 
-        		"    return ']}';\n" + 
-        		"  }\n" + 
-        		"}\n");
-        
         Database db = createDatabaseForTest();
         
+        
+        DesignDocument doc = null;
         try
         {
-            DesignDocument old = db.getDesignDocument("listDoc");
-            db.delete(old);
+            doc = db.getDesignDocument("listDoc");
         }
         catch(NotFoundException e)
         {
-            // ignore
+            
         }
         
-        db.createDocument(doc);
+        if (doc == null)
+        {
+            doc = new DesignDocument("listDoc");
+        }
+        
+        doc.addView("foos-by-value", new View(BY_VALUE_TO_NULL_FUNCTION));
+                
+        doc.addListFunction("foo", "function(head, req){\n" + 
+        "  var row;\n" +
+        "  send('{\"head\": ' + toJSON(head) + ',\"rows\":[' );\n" +
+        "  var first = true;" +
+        "  while(row = getRow()) {\n" +
+        "    send((first?'':',') + toJSON(row));\n" +
+        "    first = false;" + 
+        "  }\n" +
+        "  send(']}');" + 
+        "}");
+        
+        
+        db.createOrUpdateDocument(doc);
 
         Response response = db.queryList("listDoc/foo", "foos-by-value", new Options().key("changed"));
         
@@ -829,6 +831,26 @@ public class LocalDatabaseTestCase
         catch(NotFoundException e)
         {
             // ignore
+        }
+    }
+    
+    @Test
+    public void thatDesignDocumentDeletionWorks()
+    {
+        Database db = createDatabaseForTest();
+        
+        DesignDocument doc = db.getDesignDocument("foo");
+        assertThat(doc,is(notNullValue()));
+        db.delete(doc);
+        
+        try
+        {
+            doc = db.getDesignDocument("foo");
+            Assert.fail("design doc should be deleted.");
+        }
+        catch(NotFoundException e)
+        {
+            // ok
         }
     }
 }

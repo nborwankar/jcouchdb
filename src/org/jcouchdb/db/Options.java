@@ -124,6 +124,11 @@ public class Options
     {
         return putUnencoded("group",group);
     }
+    
+    public Options stale()
+    {
+        return putUnencoded("stale","ok");
+    }
 
     public Options reduce(boolean reduce)
     {
