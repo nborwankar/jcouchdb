@@ -125,17 +125,22 @@ public class Database
         this.jsonGenerator = jsonGenerator;
     }
     
-    public void setJSONParser(JSONParser jsonParser)
+    public void setJsonParser(JSONParser jsonParser)
     {
         this.jsonParser = jsonParser;        
         this.bulkCreateParser = null;
         
     }
     
-    public void setJSONConfig(JSONConfig config)
+    public void setJsonConfig(JSONConfig config)
     {
         this.jsonGenerator = config.getJsonGenerator();
         this.jsonParser = config.getJsonParser();
+    }
+    
+    public JSONConfig getJsonConfig()
+    {
+        return new JSONConfig(jsonGenerator, jsonParser);
     }
 
     public List<DatabaseEventHandler> getEventHandlers()
@@ -265,10 +270,8 @@ public class Database
             {
                 throw new DataAccessException("error getting document " + docId + ": ", resp);
             }
-            if (parser != null)
-            {
-                resp.setParser(parser);
-            }
+            
+            resp.setParser(getJSONParserCopy(parser));
             return resp.getContentAsBean(cls);
         }
         finally
