@@ -119,4 +119,27 @@ public interface Server
      * @return  stats map
      */
     Map<String,Map<String,Object>> getStats(String filter);
+    
+    /**
+     * Trigger replication from a database to another database. Both database can be either local names
+     * (e.g. "exampleDB") or full URLs (e.g. "http://admin:password@example.org/exampleDB" ).
+     * 
+     * Replication is always a directed from source to target. if you want to replicate in both directions
+     * you have to make two calls to {@link #replicate(String, String, boolean)}. 
+     * 
+     * @param source        source database name or URL
+     * @param target        target database name or URL
+     * @param continuous    if <code>true</code>, start continuous replication.
+     * @param replication info
+     */
+    ReplicationInfo replicate(String source,String target, boolean continuous);
+
+
+    /**
+     * Requests a list of uuids from the CouchDB server
+     * @param count     number of uuids to request
+     * @return
+     */
+    List<String> getUUIDs(int count);
 }
+

@@ -3,6 +3,7 @@ package org.jcouchdb.db;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,12 +35,12 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.jcouchdb.document.BaseDocument;
 import org.jcouchdb.exception.CouchDBException;
 import org.jcouchdb.util.Assert;
 import org.jcouchdb.util.ExceptionWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.svenson.JSON;
 
 /**
  * Default implementation of the {@link Server} interface.
@@ -402,5 +403,54 @@ public class ServerImpl
         
         Response resp = get(uri);
         return resp.getContentAsMap();
+    }
+
+    public ReplicationInfo replicate(String source, String target, boolean continuous)
+    {
+        Response response = null;
+        try
+        {
+            Map<String,Object> map = new HashMap<String, Object>();
+            map.put("source", source);
+            map.put("target", target);
+            
+            if (continuous)
+            {
+                map.put("continuous", true);
+            }
+            
+            response = post("/_replicate", JSON.defaultJSON().forValue(map) );
+            return response.getContentAsBean(ReplicationInfo.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.destroy();
+            }
+        }
+    }
+    
+    /**
+     * Requests a list of uuids from the CouchDB server
+     * @param count     number of uuids to request
+     * @return
+     */
+    public List<String> getUUIDs(int count)
+    {
+        Response response = null;
+        try
+        {
+            response = get("/_uuids?count=" + count );
+            Map content = response.getContentAsMap();
+            return (List<String>)content.get("uuids");
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.destroy();
+            }
+        }
     }
 }
