@@ -51,9 +51,9 @@ public class LocalDatabaseTestCase
 {
     private JSON jsonGenerator = new JSON();
 
-    private final static String COUCHDB_HOST = "localhost";
+    public final static String COUCHDB_HOST = "localhost";
 
-    private final static int COUCHDB_PORT = Server.DEFAULT_PORT;
+    public final static int COUCHDB_PORT = Server.DEFAULT_PORT;
 
     private static final String TESTDB_NAME = "jcouchdb_test";
 
