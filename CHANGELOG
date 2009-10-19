@@ -1,6 +1,12 @@
 jcouchdb JSON library change log:
 =================================
 
+Changes from 0.10.0-1 to 0.10.0-2:
+ 
+ * added support for _uuids and replication
+ * support use cases with app global JSON config. See Hood Beta 2 for details.
+ * Fixed serious bug regarding JSONParser runs influencing each others JSON config in some situations.  
+
 Changes from 0.9.1-2 to 0.10.0-1:
 
  * compatibility with couchdb 0.10.0: attachment revpos, new list function format
