@@ -820,13 +820,26 @@ public class LocalDatabaseTestCase
         assertThat((String)row.getKey(),is("changed"));
         
     }
-
+    
     public static void deleteDocIfExists(Database db, String docId)
     {
         try
         {
             BaseDocument doc = db.getDocument(BaseDocument.class, docId);
             db.delete(doc);
+        }
+        catch(NotFoundException e)
+        {
+            // ignore
+        }
+    }
+
+    public static void assertNotExist(Database db, String docId)
+    {
+        try
+        {
+            BaseDocument doc = db.getDocument(BaseDocument.class, docId);
+            Assert.fail(docId + " should not exists, but does exist");
         }
         catch(NotFoundException e)
         {
@@ -852,5 +865,16 @@ public class LocalDatabaseTestCase
         {
             // ok
         }
+    }
+
+    public static Database createRandomNamedDB(String prefix)
+    {
+        Server server = new ServerImpl(LocalDatabaseTestCase.COUCHDB_HOST, LocalDatabaseTestCase.COUCHDB_PORT);
+        
+        String name = prefix + server.getUUIDs(1).get(0);
+        
+        server.createDatabase(name);
+        
+        return new Database(server, name);
     }
 }

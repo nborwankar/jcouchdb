@@ -26,13 +26,7 @@ public class ConcurrentRequestTestCase
     @Before
     public void init()
     {
-        Server server = new ServerImpl(LocalDatabaseTestCase.COUCHDB_HOST, LocalDatabaseTestCase.COUCHDB_PORT);
-        
-        String name = "concurrent-" + server.getUUIDs(1).get(0);
-        
-        server.createDatabase(name);
-        
-        db = new Database(server, name);
+        db = LocalDatabaseTestCase.createRandomNamedDB("concurrent-");
         
         for ( int i = 0; i < NUM_DOCS; i++)
         {
@@ -49,6 +43,7 @@ public class ConcurrentRequestTestCase
         
         db.createDocument(doc);
     }
+
     
     @After
     public void destroy()

@@ -1,6 +1,8 @@
 package org.jcouchdb.db;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.jcouchdb.exception.DocumentValidationException;
 import org.jcouchdb.exception.NotFoundException;
 import org.jcouchdb.exception.UpdateConflictException;
 import org.jcouchdb.util.Assert;
+import org.jcouchdb.util.ExceptionWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.JSON;
@@ -627,7 +630,14 @@ public class Database
 
     private static String escapeSlashes(String s)
     {
-        return s.replace("/", "%2F");
+        try
+        {
+            return URLEncoder.encode(s, "UTF-8");
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            throw ExceptionWrapper.wrap(e);
+        }
     }
     
     private String viewURIFromName(String viewName)
