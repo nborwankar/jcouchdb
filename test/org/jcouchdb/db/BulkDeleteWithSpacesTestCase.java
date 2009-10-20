@@ -63,15 +63,16 @@ public class BulkDeleteWithSpacesTestCase
         db.createDocument(doc);
         assertThat(doc.getRevision(), is(notNullValue()));
 
-        ViewAndDocumentsResult<Object, BaseDocument> result = db.queryDocumentsByKeys(Object.class, BaseDocument.class, Arrays.asList("doc 1","doc 2"), null, null);
-        
-        assertThat(result.getTotalRows(), is(2));
         
         List<BaseDocument> docs = new ArrayList<BaseDocument>();
-        for (ValueAndDocumentRow<Object, BaseDocument> row : result.getRows())
-        {
-            docs.add(row.getDocument());
-        }
+        
+        doc = db.getDocument(BaseDocument.class, "doc 1");
+        assertThat(doc, is(notNullValue()));
+        docs.add(doc);
+        doc = db.getDocument(BaseDocument.class, "doc 2");
+        assertThat(doc, is(notNullValue()));
+        docs.add(doc);
+        
         
         db.bulkDeleteDocuments(docs);
         

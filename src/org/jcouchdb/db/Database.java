@@ -253,7 +253,7 @@ public class Database
 
         if (!docId.startsWith("_design/"))
         {
-            docId = escapeSlashes(docId);
+            docId = encodeURL(docId);
         }
         
         String uri = "/" + name + "/" + (docId);
@@ -444,7 +444,7 @@ public class Database
         Response resp = null;
         try
         {
-            resp = server.delete("/" + name + "/" + escapeSlashes(docId)+"?rev=" + revision );
+            resp = server.delete("/" + name + "/" + encodeURL(docId)+"?rev=" + revision );
 
             for (DatabaseEventHandler eventHandler : eventHandlers)
             {
@@ -518,7 +518,7 @@ public class Database
             }
             else
             {
-                resp = server.put("/" + name + "/" + escapeSlashes(id), json);
+                resp = server.put("/" + name + "/" + encodeURL(id), json);
             }
 
             for (DatabaseEventHandler eventHandler : eventHandlers)
@@ -628,7 +628,7 @@ public class Database
         return (ViewResult<V>)queryViewInternal(viewURIFromName(viewName), cls, null, options, parser, null);
     }
 
-    private static String escapeSlashes(String s)
+    private static String encodeURL(String s)
     {
         try
         {
@@ -1010,7 +1010,7 @@ public class Database
     
     private String attachmentURI(String docId, String revision, String attachmentId)
     {
-        String uri = "/" + name + "/" + escapeSlashes(docId) + "/" + attachmentId;
+        String uri = "/" + name + "/" + encodeURL(docId) + "/" + attachmentId;
         if (revision != null)
         {
             uri +="?rev="+revision;
@@ -1061,7 +1061,7 @@ public class Database
         Response resp = null;
         try
         {
-            resp = server.get("/" + name + "/" + escapeSlashes(docId) + "/" + attachmentId);
+            resp = server.get("/" + name + "/" + encodeURL(docId) + "/" + attachmentId);
             if (resp.getCode() == 404)
             {
                 throw new NotFoundException("attachment not found", resp);
@@ -1091,7 +1091,7 @@ public class Database
      */
     public Response getAttachmentResponse(String docId, String attachmentId)
     {
-        Response resp = server.get("/" + name + "/" + escapeSlashes(docId) + "/" + attachmentId);
+        Response resp = server.get("/" + name + "/" + encodeURL(docId) + "/" + attachmentId);
         if (resp.getCode() == 404)
         {
             throw new NotFoundException("attachment not found", resp);
@@ -1179,7 +1179,7 @@ public class Database
      */
     public Response queryShow(String showName, String docId, Options options)
     {
-        String uri = "/" + name + "/" + getDesignURIFromNameAndInfix(showName, SHOW_DOCUMENT_INFIX) + "/" + escapeSlashes(docId);
+        String uri = "/" + name + "/" + getDesignURIFromNameAndInfix(showName, SHOW_DOCUMENT_INFIX) + "/" + encodeURL(docId);
         
         if (options != null)
         {
@@ -1199,7 +1199,7 @@ public class Database
      */
     public Response queryList(String listName, String viewName, Options options)
     {
-        String uri = "/" + name + "/" + getDesignURIFromNameAndInfix(listName, LIST_DOCUMENT_INFIX) + "/" + escapeSlashes(viewName);
+        String uri = "/" + name + "/" + getDesignURIFromNameAndInfix(listName, LIST_DOCUMENT_INFIX) + "/" + encodeURL(viewName);
         
         if (options != null)
         {
