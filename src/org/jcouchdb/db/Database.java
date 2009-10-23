@@ -1108,7 +1108,7 @@ public class Database
      * @param documents
      * @return
      */
-    public List<DocumentInfo> bulkDeleteDocuments(List<? extends Document> documents)
+    public List<DocumentInfo> bulkDeleteDocuments(List<? extends Object> documents)
     {
         return this.bulkDeleteDocuments(documents, false);
     }
@@ -1119,15 +1119,15 @@ public class Database
      * 
      * @param documents
      */
-    public List<DocumentInfo> bulkDeleteDocuments(List<? extends Document> documents,
+    public List<DocumentInfo> bulkDeleteDocuments(List<? extends Object> documents,
         boolean allOrNothing)
     {
         List<Document> docsToDelete = new ArrayList<Document>();
-        for (Document doc : documents)
+        for (Object doc : documents)
         {
             BaseDocument proxy  = new BaseDocument();
-            proxy.setId(doc.getId());
-            proxy.setRevision(doc.getRevision());
+            proxy.setId(DocumentHelper.getId(doc));
+            proxy.setRevision(DocumentHelper.getRevision(doc));
             proxy.setProperty("_deleted", true);
             
             for (DatabaseEventHandler eventHandler : eventHandlers)
