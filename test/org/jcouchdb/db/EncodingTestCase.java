@@ -22,5 +22,19 @@ public class EncodingTestCase
         
     }
     
+    @Test
+    public void testRealNonEscaped()
+    {
+        Database db = LocalDatabaseTestCase.createDatabaseForTest();
+        BaseDocument doc = new BaseDocument();
+        doc.setProperty("value", "Hello äöü♶");
+        
+        db.createDocument(doc);
+        
+        BaseDocument doc2 = db.getDocument(BaseDocument.class, doc.getId());
+        assertThat((String)doc2.getProperty("value"), is("Hello äöü♶"));
+        
+    }
 
+    
 }

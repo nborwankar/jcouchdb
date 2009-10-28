@@ -267,7 +267,7 @@ public class ServerImpl
         HttpPut put = new HttpPut( serverURI + uri );
         if (body != null) {
             try {
-                StringEntity reqEntity = new StringEntity( body );
+                StringEntity reqEntity = new StringEntity( body , "UTF-8");
                 reqEntity.setContentType("application/json");
                 reqEntity.setContentEncoding( CHARSET );
                 put.setEntity( reqEntity );
@@ -332,7 +332,7 @@ public class ServerImpl
 
         try
         {
-            StringEntity reqEntity = new StringEntity(body);
+            StringEntity reqEntity = new StringEntity(body, "UTF-8");
             reqEntity.setContentType("application/json");
             reqEntity.setContentEncoding(CHARSET);
             post.setEntity(reqEntity);
