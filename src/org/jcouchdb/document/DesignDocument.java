@@ -53,6 +53,7 @@ public class DesignDocument
         super.setId(extendId(id));
     }
     
+    @JSONProperty(value = "_id", ignoreIfNull = true)
     @Override
     public String getId()
     {

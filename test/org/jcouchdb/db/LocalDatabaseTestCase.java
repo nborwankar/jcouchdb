@@ -236,17 +236,14 @@ public class LocalDatabaseTestCase
         log.debug("DESIGN DOC = " + jsonGenerator.dumpObjectFormatted(designDocument));
 
         db.createDocument(designDocument);
-    }
 
-    @Test
-    public void getDesignDocument()
-    {
-        Database db = createDatabaseForTest();
         DesignDocument doc = db.getDesignDocument("foo");
         log.debug(jsonGenerator.dumpObjectFormatted(doc));
         assertThat(doc, is(notNullValue()));
         assertThat(doc.getId(), is(DesignDocument.PREFIX + "foo"));
         assertThat(doc.getViews().get("byValue").getMap(), is(BY_VALUE_FUNCTION));
+        
+        assertThat(doc.getProperty("id"), is(nullValue()));
     }
 
     @Test
