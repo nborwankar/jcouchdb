@@ -1,6 +1,12 @@
 jcouchdb JSON library change log:
 =================================
 
+Changes from 0.10.0-2 to 0.10.0-3:
+
+ * Fix encoding inconsistencies 
+ * Use DocumentHelper for bulkDeleteDocuments, change signature to List<? extends Object>
+ * Properly escape spaces and other characters in URLs.
+
 Changes from 0.10.0-1 to 0.10.0-2:
  
  * added support for _uuids and replication
