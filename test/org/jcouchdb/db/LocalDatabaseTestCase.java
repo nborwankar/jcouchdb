@@ -866,10 +866,28 @@ public class LocalDatabaseTestCase
 
     public static Database createRandomNamedDB(String prefix)
     {
-        Server server = new ServerImpl(LocalDatabaseTestCase.COUCHDB_HOST, LocalDatabaseTestCase.COUCHDB_PORT);
+        Server server = createServer();
         
         String name = prefix + server.getUUIDs(1).get(0);
         
+        server.createDatabase(name);
+        
+        return new Database(server, name);
+    }
+
+    private static ServerImpl createServer()
+    {
+        return new ServerImpl(LocalDatabaseTestCase.COUCHDB_HOST, LocalDatabaseTestCase.COUCHDB_PORT);
+    }
+
+    public static Database recreateDB(String name)
+    {
+        Server server = createServer();
+        
+        if (server.listDatabases().contains(name))
+        {
+            server.deleteDatabase(name);
+        }
         server.createDatabase(name);
         
         return new Database(server, name);

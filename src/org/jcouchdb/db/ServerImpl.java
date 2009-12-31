@@ -70,6 +70,8 @@ public class ServerImpl
 
     private int maxTotalConnections = 25;
 
+    private volatile boolean shutdown;
+    
     public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute)
     {
         this.maxConnectionsPerRoute = maxConnectionsPerRoute;
@@ -387,6 +389,12 @@ public class ServerImpl
         }
         httpClient = null;
         clientConnectionManager = null;
+        shutdown = true;
+    }
+    
+    public boolean isShutdown()
+    {
+        return shutdown;
     }
 
     /**

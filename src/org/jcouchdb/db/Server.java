@@ -113,6 +113,13 @@ public interface Server
     void shutDown();
 
     /**
+     * Returns <code>true</code> if {@link #shutDown()} has been called on this server.
+     * 
+     * @return
+     */
+    boolean isShutdown();
+    
+    /**
      * Get couchdb runtime statistics.
      * 
      * @param filter    filter for the stats (e.g. "/couchdb/request_time") or <code>null</code> in which case the output will be unfiltered.

@@ -1,6 +1,5 @@
 package org.jcouchdb.document;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -102,6 +101,20 @@ public class BaseDocument
     @Override
     public String toString()
     {
-        return super.toString()+": _id = "+id+", _rev = "+revision;
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString())
+          .append("[ _id = ")
+          .append( id)
+          .append(", _rev = ")
+          .append( revision)
+          .append(", dynprops = {");
+
+        for (String name : propertyNames())
+        {
+            sb.append(name).append(" = ").append(getProperty(name)).append(" ");
+        }
+        
+        sb.append("}]");
+        return sb.toString();
     }
 }

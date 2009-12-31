@@ -24,8 +24,10 @@ public class DesignDocument
     private Map<String, String> shows;
 
     private Map<String, String> lists;
-    
+
     private String validateOnDocUpdate;
+    
+    private Map<String, String> filters;
 
     public DesignDocument(String id, String revision)
     {
@@ -205,5 +207,30 @@ public class DesignDocument
         }
         
         lists.put(name, listFn);
+    }
+
+    /**
+     * Adds a filter function to the design document
+     *
+     */
+    public void addFilterFunction(String name, String filterFn)
+    {
+        if (filters == null)
+        {
+            filters = new HashMap<String, String>();
+        }
+        
+        filters.put(name, filterFn);
+    }
+    
+    public Map<String, String> getFilterFunctions()
+    {
+        return filters;
+    }
+
+    @JSONProperty(value = "filters", ignoreIfNull = true)
+    public void setFilterFunctions(Map<String, String> filters)
+    {
+        this.filters = filters;
     }
 }

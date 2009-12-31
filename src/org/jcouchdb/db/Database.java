@@ -10,10 +10,12 @@ import java.util.Map;
 
 import org.jcouchdb.document.AbstractViewResult;
 import org.jcouchdb.document.BaseDocument;
+import org.jcouchdb.document.ChangeListener;
 import org.jcouchdb.document.DesignDocument;
 import org.jcouchdb.document.Document;
 import org.jcouchdb.document.DocumentHelper;
 import org.jcouchdb.document.DocumentInfo;
+import org.jcouchdb.document.PollingResults;
 import org.jcouchdb.document.ViewAndDocumentsResult;
 import org.jcouchdb.document.ViewResult;
 import org.jcouchdb.exception.DataAccessException;
@@ -47,6 +49,7 @@ public class Database
     private JSON jsonGenerator = new JSON();
 
     static final String VIEW_QUERY_VALUE_TYPEHINT = ".rows[].value";
+    
     private static final String VIEW_QUERY_DOCUMENT_TYPEHINT = ".rows[].doc";
 
     protected static Logger log = LoggerFactory.getLogger(Database.class);
@@ -1207,5 +1210,80 @@ public class Database
         }
         
         return server.get(uri);
+    }
+
+    /**
+     * Polls the server for changes on the current Database. 
+     * @param since         if this is not <code>null</code>, no changes before that sequence number is returned.
+     * @param filter        name of a filter function to use or <code>null</code> for unfiltered
+     * @param longPolling   if <code>true</code>, the method will block until new changes are present
+     * @param options       extended and user options. 
+     * 
+     * @return
+     */
+    public PollingResults pollChanges(Long since, String filter, boolean longPolling, Options options)
+    {
+        Response response = null;
+
+        options = getCommonChangesOptions(filter, since, options);
+        if (longPolling)
+        {
+            options.putUnencoded("feed", "longpoll");
+        }
+        try
+        {
+            response = server.get("/" + name + "/_changes" + options.toQuery() );
+            return response.getContentAsBean(PollingResults.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.destroy();
+            }
+        }
+    }
+
+    Options getCommonChangesOptions(String filter, Long since, Options options)
+    {
+        // copy to avoid side effects
+        options = new Options(options);
+        
+        if (filter != null)
+        {
+            options.putUnencoded("filter", filter);
+        }
+        if (since != null)
+        {
+            options.putUnencoded("since", since);
+        }
+        return options;
+    }
+
+    /**
+     * Register a change listener to receive continuous change notifications.
+     * 
+     * This method will start a new Thread driving the calling of the change listener. 
+     * 
+     * @param filter        name of a filter function to use or <code>null</code> for unfiltered
+     * @param since         if this is not <code>null</code>, no changes before that sequence number is returned.
+     * @param options       extended and user options. 
+     * @param listener      listener instance to register
+     */
+    public void registerChangeListener( String filter, Long since, Options options, ChangeListener listener)
+    {
+        ContinuousChangesDriver driver = new ContinuousChangesDriver(this, filter, since, options, listener);
+        driver.start();
+        try
+        {
+            synchronized(driver)
+            {
+                driver.wait();
+            }
+        }
+        catch (InterruptedException e)
+        {
+            log.error("Interrupted while waiting for ContinuousChangesDriver to start", e);
+        }
     }
 }
